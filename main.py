@@ -12,15 +12,12 @@ def read_excel(file):
 
 def main():
     df = read_excel(f'{excel_dir}\\1.xlsx')
-
-    # pivot = df.pivot_table(index=['Cost Element', 'Cost element name'], columns=['Period'], values=['Val/COArea Crcy'],
-    #                        aggfunc=['sum'])
-
     cost_centers = df['Cost Center'].tolist();
     cost_centers = set(cost_centers)
-    output_file = f'{excel_dir}\\out.xlsx'
+    output_file = str(f'{excel_dir}\\out.xlsx')
     pivots = {}
-    # writer_pivot = pd.ExcelWriter(output_file, engine='openpyxl')
+
+    # Create pivot data and write to file
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer_pivot:
         for cc in cost_centers:
             pivots[cc] = df[df['Cost Center'] == cc].pivot_table(index=['Cost Element', 'Cost element name'],
@@ -29,11 +26,9 @@ def main():
             center = str(cc)
             center_int = int(cc)
             pivots[center_int].to_excel(writer_pivot, sheet_name=center)
-        # writer_pivot.close()
 
-    out_file = str(f'{excel_dir}\\out.xlsx')
-    out_df = pd.read_excel(out_file, sheet_name=0)  # can also index sheet by name or fetch all sheets
-    with pd.ExcelWriter(out_file, engine='openpyxl', mode='a') as writer:
+    out_df = pd.read_excel(output_file, sheet_name=0)  # can also index sheet by name or fetch all sheets
+    with pd.ExcelWriter(output_file, engine='openpyxl', mode='a') as writer:
         for sheet in cost_centers:
             for column in out_df:
                 col_width = max(out_df[column].astype(str).map(len).max(), len(column))
