@@ -1,8 +1,10 @@
 import pandas as pd
 import openpyxl.utils.cell
+from openpyxl import load_workbook
+import Constants
+import ExcelUtils
 
 excel_dir = r'C:\Temp\ExcelPivotInput'
-
 
 def read_excel(file):
     df = pd.read_excel(file, sheet_name='Data base')  # can also index sheet by name or fetch all sheets
@@ -10,9 +12,15 @@ def read_excel(file):
     return df
 
 
-def set_titles(df, col_name):
-    df.at[0, col_name] = 'kfkfkfkfkfk'
-    return df
+def set_auto_fit_width(file):
+    with pd.ExcelWriter(file, engine='openpyxl', mode='a', if_sheet_exists="overlay") as writer:
+        for sheet in writer.sheets:
+            out_df = pd.read_excel(file, sheet_name=str(sheet))
+            for column in out_df:
+                col_width = max(out_df[column].astype(str).map(len).max(), len(column))
+                col_idx = out_df.columns.get_loc(column)
+                col_letter = openpyxl.utils.cell.get_column_letter(col_idx + 1)
+                writer.sheets[str(sheet)].column_dimensions[str(col_letter)].width = col_width
 
 
 def main():
@@ -33,20 +41,61 @@ def main():
             center_int = int(cc)
             pivots[center_int].to_excel(writer_pivot, sheet_name=center)
 
-    out_df = pd.read_excel(tmp_output_file)  # can also index sheet by name or fetch all sheets
 
-    with pd.ExcelWriter(tmp_output_file, engine='openpyxl', mode='a', if_sheet_exists="overlay") as writer:
-        out_df = set_titles(out_df, 'Unnamed: 0')
-        out_df.to_excel(writer, index=False)
 
-    print(out_df)
-    out_df.to_excel(tmp_output_file, index=False, header=False)
-    #     for sheet in cost_centers:
+    # load excel file
+    workbook = load_workbook(filename=tmp_output_file)
 
-            # for column in out_df:
-            #     col_width = max(out_df[column].astype(str).map(len).max(), len(column))
-            #     col_idx = out_df.columns.get_loc(column)
-            #     col_letter = openpyxl.utils.cell.get_column_letter(col_idx + 1)
-            #     writer.sheets[str(sheet)].column_dimensions[str(col_letter)].width = col_width
-            # out_df.to_excel(writer, index=False)
+    # open workbook
+    for sheet in workbook.sheetnames:
+        # modify the desired cell
+
+        s = workbook[sheet]
+        data = get_last_row_column(s)
+        s["A1"] = 'Cost Center'
+        cost_center_name = Constants.cost_centers[int(sheet)]
+        s["B2"] = cost_center_name + ' $'
+        s["A3"] = 'Sum of Val/COArea Crcy'
+        s['B1'] = sheet
+
+        #last_period_cell =
+        first_available_col = Constants.num_hash(data[1] + 2)
+        cell = ExcelUtils.find_last_period_col(s)
+        last_row = ExcelUtils.find_last_product_row(s)
+        last_col = ExcelUtils.find_last_period_col(s)
+
+        ExcelUtils.calc_total_for_period(s, last_row, last_col)
+        ExcelUtils.calc_total_for_product(s, last_row, last_col)
+
+        s[f'{Constants.num_hash(last_col+1)}4'] = Constants.grand_total_text
+
+        s[f'{Constants.num_hash(last_col+3)}4'] = Constants.comments_text
+        s[f'A{data[0]+1}'] = Constants.grand_total_text
+
+        for row in range(1, 5):
+            for col in range(1, last_col+2):
+                s[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill('title')
+
+        s['B2'].fill = Constants.get_fill('cc')
+    # save the file
+    workbook.save(filename=output_file)
+
+    set_auto_fit_width(tmp_output_file)
+
+
+def get_last_row_column(ws):
+    row = ws.max_row
+    col = ws.max_column
+    return row, col
+
+
+def get_cell_row_col_with_value(sheet, value):
+    for row in sheet.iter_rows(min_row=1, min_col=1):
+        for cell in row:
+            if cell.value == value:
+                print(cell)
+                return row, cell
+    return 0, 0
+
+
 main()
