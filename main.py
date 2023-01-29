@@ -43,7 +43,7 @@ def main():
 
 
     # load excel file
-    workbook = openpyxl.load_workbook(filename=tmp_output_file)
+    workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
 
     # open workbook
     for sheet in workbook.sheetnames:
@@ -57,10 +57,6 @@ def main():
         s["A3"] = 'Sum of Val/COArea Crcy'
         s['B1'] = sheet
 
-
-        #last_period_cell =
-        first_available_col = Constants.num_hash(data[1] + 2)
-        cell = ExcelUtils.find_last_period_col(s)
         last_row = ExcelUtils.find_last_product_row(s)
         last_col = ExcelUtils.find_last_period_col(s)
 
@@ -68,7 +64,6 @@ def main():
         ExcelUtils.calc_total_for_period(s, last_row+1, last_col)
 
         s[f'{Constants.num_hash(last_col+1)}4'] = Constants.grand_total_text
-
         s[f'{Constants.num_hash(last_col+3)}4'] = Constants.comments_text
         s[f'A{data[0]+1}'] = Constants.grand_total_text
 
@@ -78,17 +73,21 @@ def main():
 
         s['B2'].fill = Constants.get_fill('cc')
         s = ExcelUtils.remove_borders(s)
-        s = ExcelUtils.set_border_above_total_row(s, last_row + 1, last_col + 1)
+        s = ExcelUtils.set_border_under_row(s, last_row, last_row, 1, last_col + 1)
+        s = ExcelUtils.set_border_under_row(s, 4, 4, last_col + 2, last_col + 2 + 1)
         s = ExcelUtils.set_alignment(s, 1, last_row+1, 1, last_col+1, 'left', 'center')
         s = ExcelUtils.set_bold_text(sheet=s, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
-        s = ExcelUtils.set_bold_text(sheet=s, min_row=last_row + 1, max_row=last_row+1, min_col=1, max_col=last_col + 1, is_bold=True)
-        s = ExcelUtils.set_cell_format_number(sheet=s, min_row=5, max_row=last_row+1, min_col=3, max_col=last_col +1)
-
-        # s = ExcelUtils.merge_cells(sheet=s, start_row=2, end_row=2, start_col=3, end_col=5)
+        s = ExcelUtils.set_cell_format_number(sheet=s, min_row=5, max_row=last_row+1, min_col=3, max_col=last_col+1)
+        s = ExcelUtils.set_months_title(sheet=s, last_col=last_col)
 
     # save the file
     workbook.save(filename=output_file)
     set_auto_fit_width(output_file)
+
+    s = workbook['511200']
+    d = s['C3'].value
+    print(d)
+    workbook.close()
 
 
 def get_last_row_column(ws):

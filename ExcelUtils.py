@@ -48,11 +48,11 @@ def remove_borders(sheet):
     return sheet
 
 
-def set_border_above_total_row(sheet, row, col):
+def set_border_under_row(sheet, min_row, max_row, min_col, max_col):
     any_side = Side(border_style=None)
-    top = Side(border_style='thin')
-    border = Border(top=top, left=any_side, right=any_side, bottom=any_side)
-    for row in sheet.iter_rows(min_row=row, max_row=row, min_col=1, max_col=col):
+    bottom = Side(border_style='thin')
+    border = Border(top=any_side, left=any_side, right=any_side, bottom=bottom)
+    for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
         for cell in row:
             col = num_hash(cell.column)
             sheet[f'{col}{row[0].row}'].border = border
@@ -64,6 +64,23 @@ def set_alignment(sheet, min_row, max_row, min_col, max_col, horizontal, vertica
         for cell in row:
             col = num_hash(cell.column)
             sheet[f'{col}{row[0].row}'].alignment = Alignment(horizontal=horizontal, vertical=vertical)
+    return sheet
+
+
+def set_months_title(sheet, last_col):
+    last_col_letter = num_hash(last_col)
+    pre_last_letter = num_hash(last_col-1)
+
+    last_month_int = sheet.cell(row=3, column=last_col).value
+    pre_last_month_int = sheet.cell(row=3, column=last_col - 1).value
+    last_month_name = Constants.months[last_month_int]
+    result_cell_letter = num_hash(last_col+2)
+
+    if str(pre_last_month_int).isnumeric():
+        pre_last_month_name = Constants.months[pre_last_month_int]
+        sheet[f'{result_cell_letter}4'] = f'{last_month_name} vs {pre_last_month_name}'
+    else:
+        sheet[f'{result_cell_letter}4'] = f'{last_month_name}'
     return sheet
 
 

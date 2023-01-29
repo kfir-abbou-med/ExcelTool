@@ -1,6 +1,6 @@
 from openpyxl.styles import Color, PatternFill, Font, Border
 
-months ={
+months = {
     1: 'May',
     2: 'June',
     3: 'July',
