@@ -79,6 +79,7 @@ def main():
         s = ExcelUtils.set_bold_text(sheet=s, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
         s = ExcelUtils.set_cell_format_number(sheet=s, min_row=5, max_row=last_row+1, min_col=3, max_col=last_col+1)
         s = ExcelUtils.set_months_title(sheet=s, last_col=last_col)
+        s = ExcelUtils.calc_months_difference(sheet=s, min_row=5, max_row=last_row, min_col=3,max_col=last_col)
 
     # save the file
     workbook.save(filename=output_file)
