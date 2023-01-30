@@ -31,6 +31,7 @@ grand_total_text = 'Grand Total'
 comments_text = 'Comments'
 sum_of_val_text = 'Sum of Val/COArea Crcy'
 cost_center_text = 'Cost Center'
+output_file_name = 'P&L by CostCenter.xlsx'
 def num_hash(num):
     if num < 26:
         return alpha[num-1]

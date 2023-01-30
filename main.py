@@ -104,6 +104,7 @@ def main():
         sh = ExcelUtils.set_border_under_row(sh, 4, 4, last_col + 1, last_col + 2)
         sh = ExcelUtils.set_alignment(sh, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
         sh = ExcelUtils.set_bold_text(sheet=sh, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
+        sh = ExcelUtils.set_bold_text(sheet=sh, min_row=last_row+1, max_row=last_row + 1, min_col=1, max_col=last_col, is_bold=True)
         sh = ExcelUtils.set_cell_format_number(sheet=sh, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col + 1)
         sh = ExcelUtils.set_months_title(sheet=sh, last_col=last_col)
         sh = ExcelUtils.calc_months_difference(sheet=sh, min_row=5, max_row=last_row, min_col=3, max_col=last_col)
@@ -112,31 +113,28 @@ def main():
     workbook.save(filename=output_file)
     set_auto_fit_width(output_file)
     new_sheet = workbook.create_sheet('results')
-    counter = 0
+
     for sheet in workbook.sheetnames:
         if sheet == 'results':
             break
         # change xxx with the sheet name that includes the data
-        file = os.path.join(excel_dir, 'test.xlsx')
+        file = os.path.join(excel_dir, Constants.output_file_name)
         ws2 = new_sheet
 
         # calculate total number of rows and
         # columns in source excel file
         s = workbook[sheet]
-        counter = counter + 1
+
         copy_data_to_new_sheet(s, ws2)
 
         # delete sheet
         del workbook[sheet]
 
     # saving the destination excel file
-
     res_sheet = workbook['results']
     res_sheet.delete_cols(1,2)
     workbook.save(str(file))
     set_auto_fit_width(file)
-    print(counter)
-
 
 
 main()
