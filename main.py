@@ -1,5 +1,4 @@
 import os.path
-
 import pandas as pd
 import openpyxl.utils.cell
 import openpyxl
@@ -69,42 +68,39 @@ def main():
             center_int = int(cc)
             pivots[center_int].to_excel(writer_pivot, sheet_name=center)
 
-
-
     # load excel file
     workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
 
     # open workbook
     for sheet in workbook.sheetnames:
-        # modify the desired cell
-
         sh = workbook[sheet]
         set_hard_coded_text(sh, sheet)
 
-        data = ExcelUtils.get_last_row_column(sh)
-        last_row = ExcelUtils.find_last_product_row(sh)
-        last_col = ExcelUtils.find_last_period_col(sh)
+        last_cell_occupied = ExcelUtils.get_last_row_column(sh)
+        last_row = last_cell_occupied[0] # ExcelUtils.find_last_product_row(sh)
+        last_col = last_cell_occupied[1] # ExcelUtils.find_last_period_col(sh)
 
-        ExcelUtils.calc_total_for_product(sh, last_row, last_col)
+        # Set text
+        ExcelUtils.calc_and_set_total_for_product(sh, last_row, last_col)
         sh[f'{Constants.num_hash(last_col + 2)}4'] = Constants.comments_text
-        sh[f'A{data[0] + 1}'] = Constants.grand_total_text
+        sh[f'A{last_cell_occupied[0] + 1}'] = Constants.grand_total_text
+        sh['C1'] = ''
+        sh['C2'] = ''
 
-        # for row in range(1, 5):
-        #     for col in range(1, last_col+1):
-        #         sh[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill('title')
+
+        # Set some style issues
         ExcelUtils.set_fill_on_area(sh, min_row=1, max_row=5,min_col=1, max_col=last_col, color_key='title')
-
-
         sh['B2'].fill = Constants.get_fill('cc')
-        sh = ExcelUtils.remove_borders(sh)
-        sh = ExcelUtils.set_border_under_row(sh, last_row, last_row, 1, last_col)
-        sh = ExcelUtils.set_border_under_row(sh, 4, 4, last_col + 1, last_col + 2)
-        sh = ExcelUtils.set_alignment(sh, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
-        sh = ExcelUtils.set_bold_text(sheet=sh, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
-        sh = ExcelUtils.set_bold_text(sheet=sh, min_row=last_row+1, max_row=last_row + 1, min_col=1, max_col=last_col, is_bold=True)
-        sh = ExcelUtils.set_cell_format_number(sheet=sh, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col + 1)
-        sh = ExcelUtils.set_months_title(sheet=sh, last_col=last_col)
-        sh = ExcelUtils.calc_months_difference(sheet=sh, min_row=5, max_row=last_row, min_col=3, max_col=last_col)
+
+        ExcelUtils.remove_borders(sh)
+        ExcelUtils.set_border_under_row(sh, last_row, last_row, 1, last_col)
+        ExcelUtils.set_border_under_row(sh, 4, 4, last_col + 1, last_col + 2)
+        ExcelUtils.set_alignment(sh, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
+        ExcelUtils.set_bold_text(sheet=sh, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
+        ExcelUtils.set_bold_text(sheet=sh, min_row=last_row+1, max_row=last_row + 1, min_col=1, max_col=last_col, is_bold=True)
+        ExcelUtils.set_cell_format_number(sheet=sh, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col + 1)
+        ExcelUtils.set_months_title(sheet=sh, last_col=last_col)
+        ExcelUtils.calc_months_difference(sheet=sh, min_row=5, max_row=last_row+1, min_col=3, max_col=last_col)
 
     # save the file
     workbook.save(filename=output_file)

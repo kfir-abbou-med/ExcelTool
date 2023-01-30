@@ -1,6 +1,7 @@
 import Constants
 import openpyxl
 from openpyxl.styles import Border, Side, Alignment, Font
+import re
 
 
 def get_last_row_column(ws):
@@ -22,23 +23,23 @@ def validate_excel_file_data(workbook):
     return True
 
 
-def find_last_period_col(sheet):
-    for row in sheet.iter_rows(min_row=3, min_col=3, max_row=3):
-        for cell in row:
-            c = cell
-    return c.column
+# def find_last_period_col(sheet):
+#     for row in sheet.iter_rows(min_row=3, min_col=3, max_row=3):
+#         for cell in row:
+#             c = cell
+#     return c.column
+#
+#
+# def find_last_product_row(sheet):
+#     for row in sheet.iter_rows(min_row=5, min_col=1, max_col=1):
+#         for cell in row:
+#             r = cell.row
+#             if cell.value is None or cell.value == Constants.grand_total_text:
+#                 return cell.row
+#     return r
 
 
-def find_last_product_row(sheet):
-    for row in sheet.iter_rows(min_row=5, min_col=1, max_col=1):
-        for cell in row:
-            r = cell.row
-            if cell.value is None or cell.value == Constants.grand_total_text:
-                return cell.row
-    return r
-
-
-def calc_total_for_period(sheet ,last_row, last_col):
+def calc_total_for_period(sheet, last_row, last_col):
     first_row = 5
 
     for row in sheet.iter_rows(min_row=5, max_row=last_row, min_col=3, max_col=last_col):
@@ -97,15 +98,32 @@ def set_months_title(sheet, last_col):
     return sheet
 
 
-def calc_months_difference(sheet, min_row, max_row, min_col, max_col):
-    if max_col - min_col > 1:
-        for r in range (min_row, max_row):
-            for c in range(max_col-1, max_col):
-                current_month_val = sheet.cell(row=r, column=max_col).value
-                previous_month_val = sheet.cell(row=r, column=max_col-1).value
-                if current_month_val is not None and previous_month_val is not None:
-                    sheet.cell(row=r, column=max_col+1).value = current_month_val - previous_month_val
+def is_float(string):
+    # Compile a regular expression pattern to match valid float values
+    pattern = r"^[-+]?[0-9]*\.?[0-9]+$"
 
+    # Use re.match to check if the string matches the pattern
+    # Returns a match object if there is a match, else None
+    match = re.match(pattern, string)
+
+    # Convert the match object to a boolean value
+    # Returns True if there is a match, else False
+    return bool(match)
+
+
+def calc_months_difference(sheet, min_row, max_row, min_col, max_col):
+    for r in range(min_row, max_row):
+        for c in range(max_col-1, max_col):
+            current_month_val = sheet.cell(row=r, column=max_col).value
+            previous_month_val = sheet.cell(row=r, column=max_col-1).value
+            prev_month_text = str(sheet.cell(row=r, column=max_col-1).value)
+            is_prev_float = is_float(prev_month_text)
+
+            if prev_month_text is None or not is_prev_float:
+                previous_month_val = 0
+            if current_month_val is None:
+                current_month_val = 0
+            sheet.cell(row=r, column=max_col + 1).value = current_month_val - previous_month_val
     return sheet
 
 
@@ -121,9 +139,12 @@ def set_cell_format_number(sheet, min_row, max_row, min_col, max_col):
     for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
         for cell in row:
             col = num_hash(cell.column)
-            sheet[f'{col}{row[0].row}'].number_format = '"$"#,##0.00;("$"#,##0)'
-            if cell.value is not None:
-                cell.value = float(cell.value)
+            sheet[f'{col}{row[0].row}'].number_format = '#,##0.00;"-"#,##0'  #'#,##0.00$;"-"#,##0$'
+            if cell.value is None:
+                cell.value = 0
+
+            cell.value = float(cell.value)
+
     return sheet
 
 
@@ -133,7 +154,7 @@ def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
             sheet[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill(color_key)
 
 
-def calc_total_for_product(sheet, last_row, last_col):
+def calc_and_set_total_for_product(sheet, last_row, last_col):
     first_row = 5
     total_product = {}
     for row in sheet.iter_rows(min_row=5, max_row=last_row, min_col=3, max_col=last_col):
