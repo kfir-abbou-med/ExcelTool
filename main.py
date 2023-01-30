@@ -1,4 +1,6 @@
 import os.path
+import shutil
+
 import pandas as pd
 import openpyxl.utils.cell
 import openpyxl
@@ -49,7 +51,9 @@ def copy_data_to_new_sheet(sheet, new_sheet):
 
 def main():
     excel_dir = r'C:\Temp\ExcelPivotInput'
-    input_file = f'{excel_dir}\\1.xlsx'
+    input_file = '1.xlsx'
+    if not os.path.exists(excel_dir):
+        os.makedirs(excel_dir)
 
     df = read_excel(input_file)
     cost_centers = df[Constants.cost_center_text].tolist()
@@ -111,7 +115,7 @@ def main():
         if sheet == 'results':
             break
         # change xxx with the sheet name that includes the data
-        file = os.path.join(excel_dir, Constants.output_file_name)
+        file = Constants.output_file_name
         ws2 = new_sheet
 
         # calculate total number of rows and
@@ -128,6 +132,6 @@ def main():
     res_sheet.delete_cols(1,2)
     workbook.save(str(file))
     set_auto_fit_width(file)
-
+    shutil.rmtree(excel_dir)
 
 main()
