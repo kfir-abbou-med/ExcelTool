@@ -2,6 +2,22 @@ import Constants
 import openpyxl
 from openpyxl.styles import Border, Side, Alignment, Font
 
+
+def get_last_row_column(ws):
+    row = ws.max_row
+    col = ws.max_column
+    return row, col
+
+
+def get_cell_row_col_with_value(sheet, value):
+    for row in sheet.iter_rows(min_row=1, min_col=1):
+        for cell in row:
+            if cell.value == value:
+                print(cell)
+                return row, cell
+    return 0, 0
+
+
 def validate_excel_file_data(workbook):
     return True
 
@@ -71,7 +87,7 @@ def set_months_title(sheet, last_col):
     last_month_int = sheet.cell(row=3, column=last_col).value
     pre_last_month_int = sheet.cell(row=3, column=last_col - 1).value
     last_month_name = Constants.months[last_month_int]
-    result_cell_letter = num_hash(last_col+2)
+    result_cell_letter = num_hash(last_col+1)
 
     if str(pre_last_month_int).isnumeric():
         pre_last_month_name = Constants.months[pre_last_month_int]
@@ -83,15 +99,12 @@ def set_months_title(sheet, last_col):
 
 def calc_months_difference(sheet, min_row, max_row, min_col, max_col):
     if max_col - min_col > 1:
-        last_month_int = sheet.cell(row=5, column=max_col).value
-        pre_last_month_int = sheet.cell(row=5, column=min_col).value
-
         for r in range (min_row, max_row):
             for c in range(max_col-1, max_col):
                 current_month_val = sheet.cell(row=r, column=max_col).value
                 previous_month_val = sheet.cell(row=r, column=max_col-1).value
                 if current_month_val is not None and previous_month_val is not None:
-                    sheet.cell(row=r, column=max_col+2).value = current_month_val - previous_month_val
+                    sheet.cell(row=r, column=max_col+1).value = current_month_val - previous_month_val
 
     return sheet
 

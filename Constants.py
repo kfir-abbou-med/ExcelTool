@@ -29,7 +29,8 @@ alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 grand_total_text = 'Grand Total'
 comments_text = 'Comments'
-
+sum_of_val_text = 'Sum of Val/COArea Crcy'
+cost_center_text = 'Cost Center'
 def num_hash(num):
     if num < 26:
         return alpha[num-1]
@@ -42,6 +43,7 @@ def num_hash(num):
                 return num_hash(q-1) + alpha[r-1]
         else:
             return num_hash(q) + alpha[r-1]
+
 
 def get_fill(name):
     if name == 'cc':

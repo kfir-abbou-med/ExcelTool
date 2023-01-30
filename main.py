@@ -1,13 +1,14 @@
+import os.path
+
 import pandas as pd
 import openpyxl.utils.cell
 import openpyxl
 import Constants
 import ExcelUtils
-excel_dir = r'C:\Temp\ExcelPivotInput'
 
 
-def read_excel(file):
-    df = pd.read_excel(file, sheet_name='Data base')  # can also index sheet by name or fetch all sheets
+def read_excel(file, sheet_name='Data base'):
+    df = pd.read_excel(file, sheet_name=sheet_name)  # can also index sheet by name or fetch all sheets
     return df
 
 
@@ -22,9 +23,20 @@ def set_auto_fit_width(file):
                 writer.sheets[str(sheet)].column_dimensions[str(col_letter)].width = col_width
 
 
+def set_hard_coded_text(sheet, cost_center):
+    cost_center_name = Constants.cost_centers[int(cost_center)]
+    sheet["A1"] = Constants.cost_center_text
+    sheet["B2"] = cost_center_name + ' $'
+    sheet["A3"] = Constants.sum_of_val_text
+    sheet['B1'] = cost_center
+
+
 def main():
-    df = read_excel(f'{excel_dir}\\1.xlsx')
-    cost_centers = df['Cost Center'].tolist();
+    excel_dir = r'C:\Temp\ExcelPivotInput'
+    input_file = f'{excel_dir}\\1.xlsx'
+
+    df = read_excel(input_file)
+    cost_centers = df[Constants.cost_center_text].tolist()
     cost_centers = set(cost_centers)
     tmp_output_file = str(f'{excel_dir}\\tmp_out.xlsx')
     output_file = str(f'{excel_dir}\\out.xlsx')
@@ -49,61 +61,72 @@ def main():
     for sheet in workbook.sheetnames:
         # modify the desired cell
 
-        s = workbook[sheet]
-        data = get_last_row_column(s)
-        s["A1"] = 'Cost Center'
-        cost_center_name = Constants.cost_centers[int(sheet)]
-        s["B2"] = cost_center_name + ' $'
-        s["A3"] = 'Sum of Val/COArea Crcy'
-        s['B1'] = sheet
+        sh = workbook[sheet]
+        set_hard_coded_text(sh, sheet)
 
-        last_row = ExcelUtils.find_last_product_row(s)
-        last_col = ExcelUtils.find_last_period_col(s)
+        data = ExcelUtils.get_last_row_column(sh)
 
-        ExcelUtils.calc_total_for_product(s, last_row, last_col)
-        ExcelUtils.calc_total_for_period(s, last_row+1, last_col)
 
-        s[f'{Constants.num_hash(last_col+1)}4'] = Constants.grand_total_text
-        s[f'{Constants.num_hash(last_col+3)}4'] = Constants.comments_text
-        s[f'A{data[0]+1}'] = Constants.grand_total_text
+        last_row = ExcelUtils.find_last_product_row(sh)
+        last_col = ExcelUtils.find_last_period_col(sh)
+
+        ExcelUtils.calc_total_for_product(sh, last_row, last_col)
+        # ExcelUtils.calc_total_for_period(sh, last_row + 1, last_col)
+
+        # sh[f'{Constants.num_hash(last_col + 1)}4'] = Constants.grand_total_text
+        sh[f'{Constants.num_hash(last_col + 2)}4'] = Constants.comments_text
+        sh[f'A{data[0] + 1}'] = Constants.grand_total_text
 
         for row in range(1, 5):
-            for col in range(1, last_col+2):
-                s[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill('title')
+            for col in range(1, last_col+1):
+                sh[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill('title')
 
-        s['B2'].fill = Constants.get_fill('cc')
-        s = ExcelUtils.remove_borders(s)
-        s = ExcelUtils.set_border_under_row(s, last_row, last_row, 1, last_col + 1)
-        s = ExcelUtils.set_border_under_row(s, 4, 4, last_col + 2, last_col + 2 + 1)
-        s = ExcelUtils.set_alignment(s, 1, last_row+1, 1, last_col+1, 'left', 'center')
-        s = ExcelUtils.set_bold_text(sheet=s, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
-        s = ExcelUtils.set_cell_format_number(sheet=s, min_row=5, max_row=last_row+1, min_col=3, max_col=last_col+1)
-        s = ExcelUtils.set_months_title(sheet=s, last_col=last_col)
-        s = ExcelUtils.calc_months_difference(sheet=s, min_row=5, max_row=last_row, min_col=3,max_col=last_col)
+        sh['B2'].fill = Constants.get_fill('cc')
+        sh = ExcelUtils.remove_borders(sh)
+        sh = ExcelUtils.set_border_under_row(sh, last_row, last_row, 1, last_col)
+        sh = ExcelUtils.set_border_under_row(sh, 4, 4, last_col + 1, last_col + 2)
+        sh = ExcelUtils.set_alignment(sh, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
+        sh = ExcelUtils.set_bold_text(sheet=sh, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
+        sh = ExcelUtils.set_cell_format_number(sheet=sh, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col + 1)
+        sh = ExcelUtils.set_months_title(sheet=sh, last_col=last_col)
+        sh = ExcelUtils.calc_months_difference(sheet=sh, min_row=5, max_row=last_row, min_col=3, max_col=last_col)
 
     # save the file
     workbook.save(filename=output_file)
     set_auto_fit_width(output_file)
+    new_sheet = workbook.create_sheet('sid1')
 
-    s = workbook['511200']
-    d = s['C3'].value
-    print(d)
-    workbook.close()
+    for sheet in workbook.sheetnames:
+        # change xxx with the sheet name that includes the data
+        file = os.path.join(excel_dir, 'test.xlsx')
+        # # opening the destination excel file
+        filename1 = r"C:\temp\ExcelPivotInput\test.xlsx"
+        ws2 = new_sheet
+
+        # calculate total number of rows and
+        # columns in source excel file
+        s = workbook[sheet]
+        mr = s.max_row
+        mc = s.max_column
+
+        for i in range(1, mr + 1):
+            for j in range(1, mc + 1):
+                # reading cell value from source excel file
+                c = s.cell(row=i, column=j)
+                if c.has_style:
+                    ws2.cell(row=i, column=j)._style = c._style
+                # writing the read value to destination excel file
+                ws2.cell(row=i, column=j).value = c.value
 
 
-def get_last_row_column(ws):
-    row = ws.max_row
-    col = ws.max_column
-    return row, col
+        # saving the destination excel file
+        workbook.save(str(filename1))
+        set_auto_fit_width(output_file)
+        break
 
 
-def get_cell_row_col_with_value(sheet, value):
-    for row in sheet.iter_rows(min_row=1, min_col=1):
-        for cell in row:
-            if cell.value == value:
-                print(cell)
-                return row, cell
-    return 0, 0
+
+
 
 
 main()
