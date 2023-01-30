@@ -82,21 +82,18 @@ def main():
         set_hard_coded_text(sh, sheet)
 
         data = ExcelUtils.get_last_row_column(sh)
-
-
         last_row = ExcelUtils.find_last_product_row(sh)
         last_col = ExcelUtils.find_last_period_col(sh)
 
         ExcelUtils.calc_total_for_product(sh, last_row, last_col)
-        # ExcelUtils.calc_total_for_period(sh, last_row + 1, last_col)
-
-        # sh[f'{Constants.num_hash(last_col + 1)}4'] = Constants.grand_total_text
         sh[f'{Constants.num_hash(last_col + 2)}4'] = Constants.comments_text
         sh[f'A{data[0] + 1}'] = Constants.grand_total_text
 
-        for row in range(1, 5):
-            for col in range(1, last_col+1):
-                sh[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill('title')
+        # for row in range(1, 5):
+        #     for col in range(1, last_col+1):
+        #         sh[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill('title')
+        ExcelUtils.set_fill_on_area(sh, min_row=1, max_row=5,min_col=1, max_col=last_col, color_key='title')
+
 
         sh['B2'].fill = Constants.get_fill('cc')
         sh = ExcelUtils.remove_borders(sh)

@@ -127,6 +127,12 @@ def set_cell_format_number(sheet, min_row, max_row, min_col, max_col):
     return sheet
 
 
+def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
+    for row in range(min_row, max_row):
+        for col in range(min_col, max_col + 1):
+            sheet[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill(color_key)
+
+
 def calc_total_for_product(sheet, last_row, last_col):
     first_row = 5
     total_product = {}
