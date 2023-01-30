@@ -31,6 +31,23 @@ def set_hard_coded_text(sheet, cost_center):
     sheet['B1'] = cost_center
 
 
+def copy_data_to_new_sheet(sheet, new_sheet):
+    mr = sheet.max_row
+    mc = sheet.max_column
+
+    col_offset = new_sheet.max_column
+
+    for i in range(1, mr + 1):
+        for j in range(1, mc + 1):
+            # reading cell value from source excel file
+            c = sheet.cell(row=i, column=j)
+            if c.has_style:
+                new_sheet.cell(row=i, column=j + col_offset + 1)._style = c._style
+
+            # writing the read value to destination excel file
+            new_sheet.cell(row=i, column=j + col_offset + 1).value = c.value
+
+
 def main():
     excel_dir = r'C:\Temp\ExcelPivotInput'
     input_file = f'{excel_dir}\\1.xlsx'
@@ -94,38 +111,31 @@ def main():
     # save the file
     workbook.save(filename=output_file)
     set_auto_fit_width(output_file)
-    new_sheet = workbook.create_sheet('sid1')
-
+    new_sheet = workbook.create_sheet('results')
+    counter = 0
     for sheet in workbook.sheetnames:
+        if sheet == 'results':
+            break
         # change xxx with the sheet name that includes the data
         file = os.path.join(excel_dir, 'test.xlsx')
-        # # opening the destination excel file
-        filename1 = r"C:\temp\ExcelPivotInput\test.xlsx"
         ws2 = new_sheet
 
         # calculate total number of rows and
         # columns in source excel file
         s = workbook[sheet]
-        mr = s.max_row
-        mc = s.max_column
+        counter = counter + 1
+        copy_data_to_new_sheet(s, ws2)
 
-        for i in range(1, mr + 1):
-            for j in range(1, mc + 1):
-                # reading cell value from source excel file
-                c = s.cell(row=i, column=j)
-                if c.has_style:
-                    ws2.cell(row=i, column=j)._style = c._style
-                # writing the read value to destination excel file
-                ws2.cell(row=i, column=j).value = c.value
+        # delete sheet
+        del workbook[sheet]
 
+    # saving the destination excel file
 
-        # saving the destination excel file
-        workbook.save(str(filename1))
-        set_auto_fit_width(output_file)
-        break
-
-
-
+    res_sheet = workbook['results']
+    res_sheet.delete_cols(1,2)
+    workbook.save(str(file))
+    set_auto_fit_width(file)
+    print(counter)
 
 
 
