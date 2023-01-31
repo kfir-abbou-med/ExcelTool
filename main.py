@@ -54,6 +54,7 @@ def copy_data_to_new_sheet(sheet, new_sheet):
 def main():
     excel_dir = r'C:\Temp\ExcelPivotInput'
     files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
+
     input_file = files[0]
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
@@ -80,61 +81,57 @@ def main():
 
     # open workbook
     for sheet in workbook.sheetnames:
-        sh = workbook[sheet]
-        set_hard_coded_text(sh, sheet)
+        curr_sheet = workbook[sheet]
+        set_hard_coded_text(curr_sheet, sheet)
 
-        last_cell_occupied = ExcelUtils.get_last_row_column(sh)
-        last_row = last_cell_occupied[0] # ExcelUtils.find_last_product_row(sh)
-        last_col = last_cell_occupied[1] # ExcelUtils.find_last_period_col(sh)
+        last_cell_occupied = ExcelUtils.get_last_row_column(curr_sheet)
+        last_row = last_cell_occupied[0]
+        last_col = last_cell_occupied[1]
 
         # Set text
-        ExcelUtils.calc_and_set_total_for_product(sh, last_row, last_col)
-        sh[f'{Constants.num_hash(last_col + 2)}4'] = Constants.comments_text
-        sh[f'A{last_cell_occupied[0] + 1}'] = Constants.grand_total_text
-        sh['C1'] = ''
-        sh['C2'] = ''
+        ExcelUtils.calc_and_set_total_for_product(curr_sheet, last_row, last_col)
+        ExcelUtils.set_absolute_text(curr_sheet, last_col + 2, last_cell_occupied[0] + 1)
 
 
         # Set some style issues
-        ExcelUtils.set_fill_on_area(sh, min_row=1, max_row=5,min_col=1, max_col=last_col, color_key='title')
-        sh['B2'].fill = Constants.get_fill('cc')
-
-        ExcelUtils.remove_borders(sh)
-        ExcelUtils.set_border_under_row(sh, last_row, last_row, 1, last_col)
-        ExcelUtils.set_border_under_row(sh, 4, 4, last_col + 1, last_col + 2)
-        ExcelUtils.set_alignment(sh, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
-        ExcelUtils.set_bold_text(sheet=sh, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
-        ExcelUtils.set_bold_text(sheet=sh, min_row=last_row+1, max_row=last_row + 1, min_col=1, max_col=last_col, is_bold=True)
-        ExcelUtils.set_cell_format_number(sheet=sh, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col + 1)
-        ExcelUtils.set_months_title(sheet=sh, last_col=last_col)
-        ExcelUtils.calc_months_difference(sheet=sh, min_row=5, max_row=last_row+1, min_col=3, max_col=last_col)
+        ExcelUtils.set_fill_on_area(curr_sheet, min_row=1, max_row=5, min_col=1, max_col=last_col, color_key='title')
+        curr_sheet['B2'].fill = Constants.get_fill('cc')
+        ExcelUtils.remove_borders(curr_sheet)
+        ExcelUtils.set_border_under_row(curr_sheet, last_row, last_row, 1, last_col)
+        ExcelUtils.set_border_under_row(curr_sheet, 4, 4, last_col + 1, last_col + 2)
+        ExcelUtils.set_alignment(curr_sheet, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
+        ExcelUtils.set_bold_text(sheet=curr_sheet, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1, is_bold=False)
+        ExcelUtils.set_bold_text(sheet=curr_sheet, min_row=last_row + 1, max_row=last_row + 1, min_col=1, max_col=last_col, is_bold=True)
+        ExcelUtils.set_cell_format_number(sheet=curr_sheet, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col + 1)
+        ExcelUtils.set_months_title(sheet=curr_sheet, last_col=last_col)
+        ExcelUtils.calc_months_difference(sheet=curr_sheet, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col)
 
     # save the file
-    workbook.save(filename=output_file)
-    set_auto_fit_width(output_file)
-    new_sheet = workbook.create_sheet('results')
+    # workbook.save(filename=output_file)
+    # set_auto_fit_width(output_file)
+    results_sheet = workbook.create_sheet('results')
 
     for sheet in workbook.sheetnames:
         if sheet == 'results':
             break
         # change xxx with the sheet name that includes the data
         file = Constants.output_file_name
-        ws2 = new_sheet
 
         # calculate total number of rows and
         # columns in source excel file
-        s = workbook[sheet]
+        active_sheet = workbook[sheet]
 
-        copy_data_to_new_sheet(s, ws2)
+        copy_data_to_new_sheet(sheet=active_sheet, new_sheet=results_sheet)
 
         # delete sheet
         del workbook[sheet]
 
     # saving the destination excel file
     res_sheet = workbook['results']
-    res_sheet.delete_cols(1,2)
+    res_sheet.delete_cols(1, 2)
     workbook.save(str(file))
     set_auto_fit_width(file)
     shutil.rmtree(excel_dir)
+
 
 main()

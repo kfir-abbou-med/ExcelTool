@@ -1,5 +1,4 @@
 import Constants
-import openpyxl
 from openpyxl.styles import Border, Side, Alignment, Font
 import re
 
@@ -19,24 +18,11 @@ def get_cell_row_col_with_value(sheet, value):
     return 0, 0
 
 
-def validate_excel_file_data(workbook):
-    return True
-
-
-# def find_last_period_col(sheet):
-#     for row in sheet.iter_rows(min_row=3, min_col=3, max_row=3):
-#         for cell in row:
-#             c = cell
-#     return c.column
-#
-#
-# def find_last_product_row(sheet):
-#     for row in sheet.iter_rows(min_row=5, min_col=1, max_col=1):
-#         for cell in row:
-#             r = cell.row
-#             if cell.value is None or cell.value == Constants.grand_total_text:
-#                 return cell.row
-#     return r
+def set_absolute_text(sheet, comments_col_num, total_row_num):
+    sheet[f'{num_hash(comments_col_num)}4'] = Constants.comments_text
+    sheet[f'A{total_row_num}'] = Constants.grand_total_text
+    sheet['C1'] = ''
+    sheet['C2'] = ''
 
 
 def calc_total_for_period(sheet, last_row, last_col):
@@ -136,10 +122,13 @@ def set_bold_text(sheet, min_row=1, max_row=None, min_col=1, max_col=None, is_bo
 
 
 def set_cell_format_number(sheet, min_row, max_row, min_col, max_col):
+    num_format = '#,##0.00;"-"#,##0'
+    # num_format = '#,##0.00$;"-"#,##0$'
+
     for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
         for cell in row:
             col = num_hash(cell.column)
-            sheet[f'{col}{row[0].row}'].number_format = '#,##0.00;"-"#,##0'  #'#,##0.00$;"-"#,##0$'
+            sheet[f'{col}{row[0].row}'].number_format = num_format
             if cell.value is None:
                 cell.value = 0
 
@@ -151,7 +140,7 @@ def set_cell_format_number(sheet, min_row, max_row, min_col, max_col):
 def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
     for row in range(min_row, max_row):
         for col in range(min_col, max_col + 1):
-            sheet[f'{Constants.num_hash(col)}{row}'].fill = Constants.get_fill(color_key)
+            sheet[f'{num_hash(col)}{row}'].fill = Constants.get_fill(color_key)
 
 
 def calc_and_set_total_for_product(sheet, last_row, last_col):
@@ -176,10 +165,9 @@ def write_results(sheet, row, col, total):
     sheet[f'{col_letter}{row}'] = total
 
 
-alpha = Constants.alpha
-
-
 def num_hash(num):
+    alpha = Constants.alpha
+
     if num < 26:
         return alpha[num-1]
     else:
