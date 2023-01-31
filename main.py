@@ -1,4 +1,6 @@
+import glob
 import os.path
+import pathlib
 import shutil
 
 import pandas as pd
@@ -51,7 +53,8 @@ def copy_data_to_new_sheet(sheet, new_sheet):
 
 def main():
     excel_dir = r'C:\Temp\ExcelPivotInput'
-    input_file = '1.xlsx'
+    files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
+    input_file = files[0]
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
 
