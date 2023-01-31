@@ -63,7 +63,7 @@ def main():
     cost_centers = df[Constants.cost_center_text].tolist()
     cost_centers = set(cost_centers)
     tmp_output_file = str(f'{excel_dir}\\tmp_out.xlsx')
-    output_file = str(f'{excel_dir}\\out.xlsx')
+    # output_file = str(f'{excel_dir}\\out.xlsx')
     pivots = {}
 
     # Create pivot data and write to file
@@ -106,28 +106,22 @@ def main():
         ExcelUtils.set_months_title(sheet=curr_sheet, last_col=last_col)
         ExcelUtils.calc_months_difference(sheet=curr_sheet, min_row=5, max_row=last_row + 1, min_col=3, max_col=last_col)
 
-    # save the file
-    # workbook.save(filename=output_file)
-    # set_auto_fit_width(output_file)
-    results_sheet = workbook.create_sheet('results')
+    results_sheet = workbook.create_sheet()
 
-    for sheet in workbook.sheetnames:
-        if sheet == 'results':
-            break
+    all_sheets_but_results = (s_ for s_ in workbook.sheetnames if s_ != Constants.results_text)
+    # Copy all results to a single sheet
+    for sheet in all_sheets_but_results:
+
         # change xxx with the sheet name that includes the data
         file = Constants.output_file_name
-
-        # calculate total number of rows and
-        # columns in source excel file
         active_sheet = workbook[sheet]
-
         copy_data_to_new_sheet(sheet=active_sheet, new_sheet=results_sheet)
 
         # delete sheet
         del workbook[sheet]
 
     # saving the destination excel file
-    res_sheet = workbook['results']
+    res_sheet = workbook[Constants.results_text]
     res_sheet.delete_cols(1, 2)
     workbook.save(str(file))
     set_auto_fit_width(file)
