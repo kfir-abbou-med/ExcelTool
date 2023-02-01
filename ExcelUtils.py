@@ -36,9 +36,25 @@ def calc_total_for_period(sheet, last_row, last_col):
         write_results(sheet, row[0].row, last_col + 1, total_period)
 
 
-def merge_cells(sheet, start_row, start_col, end_row, end_col):
-    sheet.merge_cells(start_row=start_row, start_column=start_col, end_row=end_row, end_column=end_col)
-    return sheet
+# def merge_cells(sheet, start_row, start_col, end_row, end_col):
+#     sheet.merge_cells(start_row=start_row, start_column=start_col, end_row=end_row, end_column=end_col)
+#     return sheet
+
+def copy_data_to_new_sheet(sheet, new_sheet):
+    mr = sheet.max_row
+    mc = sheet.max_column
+
+    col_offset = new_sheet.max_column
+
+    for i in range(1, mr + 1):
+        for j in range(1, mc + 1):
+            # reading cell value from source excel file
+            c = sheet.cell(row=i, column=j)
+            if c.has_style:
+                new_sheet.cell(row=i, column=j + col_offset + 1)._style = c._style
+
+            # writing the read value to destination excel file
+            new_sheet.cell(row=i, column=j + col_offset + 1).value = c.value
 
 
 def remove_borders(sheet):
@@ -99,17 +115,17 @@ def is_float(string):
 
 def calc_months_difference(sheet, min_row, max_row, min_col, max_col):
     for r in range(min_row, max_row):
-        for c in range(max_col-1, max_col):
-            current_month_val = sheet.cell(row=r, column=max_col).value
-            previous_month_val = sheet.cell(row=r, column=max_col-1).value
-            prev_month_text = str(sheet.cell(row=r, column=max_col-1).value)
-            is_prev_float = is_float(prev_month_text)
+        # for c in range(max_col-1, max_col):
+        current_month_val = sheet.cell(row=r, column=max_col).value
+        previous_month_val = sheet.cell(row=r, column=max_col-1).value
+        prev_month_text = str(sheet.cell(row=r, column=max_col-1).value)
+        is_prev_float = is_float(prev_month_text)
 
-            if prev_month_text is None or not is_prev_float:
-                previous_month_val = 0
-            if current_month_val is None:
-                current_month_val = 0
-            sheet.cell(row=r, column=max_col + 1).value = current_month_val - previous_month_val
+        if prev_month_text is None or not is_prev_float:
+            previous_month_val = 0
+        if current_month_val is None:
+            current_month_val = 0
+        sheet.cell(row=r, column=max_col+1).value = current_month_val - previous_month_val
     return sheet
 
 
@@ -121,8 +137,8 @@ def set_bold_text(sheet, min_row=1, max_row=None, min_col=1, max_col=None, is_bo
     return sheet
 
 
-def set_cell_format_number(sheet, min_row, max_row, min_col, max_col):
-    num_format = '#,##0.00;"-"#,##0'
+def set_cell_number_format(sheet, min_row, max_row, min_col, max_col):
+    num_format = '#,##0.00;"-"#,##0.00'
     # num_format = '#,##0.00$;"-"#,##0$'
 
     for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
