@@ -1,6 +1,7 @@
 import Constants
 from openpyxl.styles import Border, Side, Alignment, Font
 import re
+import datetime
 
 
 def get_last_row_column(ws):
@@ -25,20 +26,16 @@ def set_absolute_text(sheet, comments_col_num, total_row_num):
     sheet['C2'] = ''
 
 
-def calc_total_for_period(sheet, last_row, last_col):
-    first_row = 5
+def calc_total_for_column(sheet, min_row, max_row, min_col, max_col):
+    total_period = 0
+    for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
 
-    for row in sheet.iter_rows(min_row=5, max_row=last_row, min_col=3, max_col=last_col):
-        total_period = 0
         for cell in row:
             if cell.value is not None:
                 total_period = float(cell.value) + total_period
-        write_results(sheet, row[0].row, last_col + 1, total_period)
+        # write_results(sheet, row[0].row, max_col + 1, total_period)
+    return total_period
 
-
-# def merge_cells(sheet, start_row, start_col, end_row, end_col):
-#     sheet.merge_cells(start_row=start_row, start_column=start_col, end_row=end_row, end_column=end_col)
-#     return sheet
 
 def copy_data_to_new_sheet(sheet, new_sheet):
     mr = sheet.max_row
@@ -159,21 +156,76 @@ def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
             sheet[f'{num_hash(col)}{row}'].fill = Constants.get_fill(color_key)
 
 
-def set_titles_for_budget_sum(sheet):
+def set_const_text_sum_sheet(sheet):
+    # Set titles -> should be called once
+    sheet["A1"] = 'Cost Center (All)'
+    sheet["A5"] = Constants.actual_text
+    sheet["A6"] = Constants.budget_text
+    sheet["A8"] = Constants.diff_Budget  # bold
+
+
+def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
     min_col = 1
     max_col = 12 + 1
+    active_sheet_max_row = active_sheet.max_row + 4
 
-    sheet["A1"] = 'Cost Center (All)'
+    # TODO: set bold
+    cost_center_cell = active_sheet[f'A{str(active_sheet_max_row)}']
+    cost_center_cell.value = f'{data_sheet.title}- {Constants.cost_centers[int(data_sheet.title)]}'
+    set_cell_bold(active_sheet, active_sheet[f'A{str(active_sheet_max_row)}'])
+    set_cell_border(active_sheet, cost_center_cell, False, True, False, False)
 
+    active_sheet[f'A{str(int(active_sheet_max_row+1))}'] = Constants.actual_text
+    active_sheet[f'A{str(int(active_sheet_max_row+2))}'] = Constants.budget_text
+    active_sheet[f'A{str(int(active_sheet_max_row+3))}'] = Constants.diff_Budget
+    set_months_titles(sheet=active_sheet, row=active_sheet_max_row, min_col=2, max_col=13)  # TODO: use args
+
+    # set calculated values
+    for col in range(3, max_col):
+        total_for_col = calc_total_for_column(data_sheet, 5, max_row, col, col)
+        row_for_results = active_sheet_max_row+1
+        col_letter = num_hash(col-1)
+        actual_cell = active_sheet[f'{col_letter}{row_for_results}']
+        actual_cell.value = float(total_for_col)
+        active_sheet[f'{col_letter}{str(int(row_for_results+1))}'] = 0
+        active_sheet[f'{col_letter}{str(int(row_for_results+2))}'] = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
+
+def set_cell_fill(sheet, cell, color_key):
+    sheet[cell.coordinate].fill = Constants.get_fill(color_key)
+
+
+def set_cell_bold(sheet, cell):
+    sheet[cell.coordinate].font = Font(bold=True)
+
+
+def set_cell_border(sheet, cell, top, bottom, left, right):
+    no_border = Side(border_style=None)
+    thin = Side(border_style='thin')
+
+    top_border = thin if top is True else no_border
+    bottom_border = thin if bottom is True else no_border
+    left_border = thin if left is True else no_border
+    right_border = thin if right is True else no_border
+
+    border = Border(top=top_border, left=left_border, right=right_border, bottom=bottom_border)
+    sheet[cell.coordinate].border = border
+
+
+def set_months_titles(sheet, row, min_col, max_col):
+    # Set All_cost_center months titles -> should be called once
     for i in range(min_col, max_col):
-        letter = num_hash(i+1)
-        sheet[f'{letter}1'] = Constants.months[i]
+        letter = num_hash(i)
+        month = Constants.months[i-1][:3]
+        year = str(get_current_year(i))[2:]
+        sheet[f'{letter}{row}'] = f'{month}-{year}'
+        set_cell_fill(sheet, sheet[f'{letter}{row}'], 'title')
 
 
-
-# def set_sum_sheet_results(sheet, ):
-
-
+def get_current_year(month_key):
+    if month_key > 8:
+        return datetime.date.today().year + 1
+    else:
+        return datetime.date.today().year
 
 def calc_and_set_total_for_product(sheet, min_row, max_row, min_col, max_col):
     # ws['A9'] = '=SUM(A2:A8)'

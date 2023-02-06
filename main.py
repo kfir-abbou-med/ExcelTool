@@ -98,20 +98,22 @@ def main():
     workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
     sheet_BUDGET = 'BUDGET'
     workbook.create_sheet(sheet_BUDGET)
-
+    ExcelUtils.set_const_text_sum_sheet(workbook[sheet_BUDGET])
+    # TODO: check if save is needed - in terms of active area - max row/col
+    workbook.save(tmp_output_file)
     # open workbook
     for sheet in workbook.sheetnames:
         if sheet == sheet_BUDGET:
             pass
-        ExcelUtils.set_titles_for_budget_sum(workbook[sheet_BUDGET])
-        workbook.save(str(tmp_output_file))
+
         curr_sheet = workbook[sheet]
         set_hard_coded_text(curr_sheet, sheet)
 
         last_cell_occupied = ExcelUtils.get_last_row_column(curr_sheet)
         last_row = last_cell_occupied[0]
         last_col = last_cell_occupied[1]
-
+        ExcelUtils.set_totals_for_budget(workbook[sheet_BUDGET], workbook[sheet], last_row, last_col)
+        workbook.save(str(tmp_output_file))
         # Set text
         ExcelUtils.calc_and_set_total_for_product(curr_sheet, 5, last_row, 3, last_col)
         ExcelUtils.set_absolute_text(curr_sheet, last_col + 2, last_cell_occupied[0] + 1)

@@ -33,6 +33,10 @@ sum_of_val_text = 'Sum of Val/COArea Crcy'
 cost_center_text = 'Cost Center'
 output_file_name = 'P&L by CostCenter.xlsx'
 results_text = 'results'
+actual_text = 'Actual'
+budget_text = 'Budget'
+diff_Budget = 'Diff Budget vs Actual'
+
 
 def get_fill(name):
     if name == 'cc':
