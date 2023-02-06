@@ -96,9 +96,15 @@ def main():
 
     # load excel file
     workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
+    sheet_BUDGET = 'BUDGET'
+    workbook.create_sheet(sheet_BUDGET)
 
     # open workbook
     for sheet in workbook.sheetnames:
+        if sheet == sheet_BUDGET:
+            pass
+        ExcelUtils.set_titles_for_budget_sum(workbook[sheet_BUDGET])
+        workbook.save(str(tmp_output_file))
         curr_sheet = workbook[sheet]
         set_hard_coded_text(curr_sheet, sheet)
 
@@ -107,7 +113,7 @@ def main():
         last_col = last_cell_occupied[1]
 
         # Set text
-        ExcelUtils.calc_and_set_total_for_product(curr_sheet, last_row, last_col)
+        ExcelUtils.calc_and_set_total_for_product(curr_sheet, 5, last_row, 3, last_col)
         ExcelUtils.set_absolute_text(curr_sheet, last_col + 2, last_cell_occupied[0] + 1)
 
         # Set some style issues
@@ -142,7 +148,6 @@ def main():
         ExcelUtils.copy_data_to_new_sheet(sheet=active_sheet, new_sheet=results_sheet)
         # delete sheet
         del workbook[sheet]
-
 
     results_sheet.delete_cols(1, 2)
 

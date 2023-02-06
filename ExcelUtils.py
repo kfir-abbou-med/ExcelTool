@@ -159,10 +159,29 @@ def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
             sheet[f'{num_hash(col)}{row}'].fill = Constants.get_fill(color_key)
 
 
-def calc_and_set_total_for_product(sheet, last_row, last_col):
-    first_row = 5
+def set_titles_for_budget_sum(sheet):
+    min_col = 1
+    max_col = 12 + 1
+
+    sheet["A1"] = 'Cost Center (All)'
+
+    for i in range(min_col, max_col):
+        letter = num_hash(i+1)
+        sheet[f'{letter}1'] = Constants.months[i]
+
+
+
+# def set_sum_sheet_results(sheet, ):
+
+
+
+def calc_and_set_total_for_product(sheet, min_row, max_row, min_col, max_col):
+    # ws['A9'] = '=SUM(A2:A8)'
+    # col = num_hash(min_col)
+    # sheet[f'{col}{max_row+1}'] = f'=SUM({col}{min_row}:{col}{max_row})'
+
     total_product = {}
-    for row in sheet.iter_rows(min_row=5, max_row=last_row, min_col=3, max_col=last_col):
+    for row in sheet.iter_rows(min_row, max_row, min_col, max_col):
         for cell in row:
             if cell.value is not None:
                 if total_product.__contains__(cell.column):
@@ -172,7 +191,7 @@ def calc_and_set_total_for_product(sheet, last_row, last_col):
 
     for key in total_product.keys():
         col = num_hash(key)
-        row = last_row + 1
+        row = max_row + 1
         sheet[f'{col}{row}'] = total_product[key]
 
 
