@@ -158,10 +158,34 @@ def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
 
 def set_const_text_sum_sheet(sheet):
     # Set titles -> should be called once
-    sheet["A1"] = 'Cost Center (All)'
+    sheet["A1"] = 'Cost Center'
+    sheet["A2"] = '(All)'
     sheet["A5"] = Constants.actual_text
     sheet["A6"] = Constants.budget_text
     sheet["A8"] = Constants.diff_Budget  # bold
+    last_col = 13
+    for i in range(1, last_col):
+        col_letter = num_hash(i+1)
+        sheet[f'{col_letter}3'] = i
+        set_cell_fill(sheet, sheet[f'{col_letter}3'], 'title')
+    col_letter = num_hash(last_col + 1)
+    sheet[f'{col_letter}3'] = 'Total'
+    set_cell_fill(sheet, sheet[f'{col_letter}3'], 'title')
+
+
+def set_all_totals(sheet, all_sheets_total_per_month):
+    for key in all_sheets_total_per_month.keys():
+        letter = num_hash(key+1)
+        actual = sheet[f'{letter}5']
+        budget = sheet[f'{letter}6']
+        diff = sheet[f'{letter}8']
+        actual.value = all_sheets_total_per_month[key]
+        budget.value = 0
+        diff.value = f'={letter}6-{letter}5'
+
+    sheet["N5"] = '=SUM(B5:M5)'
+    sheet["N6"] = '=SUM(B5:M6)'
+    sheet["N8"] = '=SUM(B5:M8)'
 
 
 def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
@@ -178,8 +202,8 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
     active_sheet[f'A{str(int(active_sheet_max_row+1))}'] = Constants.actual_text
     active_sheet[f'A{str(int(active_sheet_max_row+2))}'] = Constants.budget_text
     active_sheet[f'A{str(int(active_sheet_max_row+3))}'] = Constants.diff_Budget
-    set_months_titles(sheet=active_sheet, row=active_sheet_max_row, min_col=2, max_col=13)  # TODO: use args
-
+    set_months_titles(sheet=active_sheet, row=active_sheet_max_row, min_col=2, max_col=14)  # TODO: use args
+    min_col = 3
     # set calculated values
     for col in range(3, max_col):
         total_for_col = calc_total_for_column(data_sheet, 5, max_row, col, col)
@@ -189,6 +213,21 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
         actual_cell.value = float(total_for_col)
         active_sheet[f'{col_letter}{str(int(row_for_results+1))}'] = 0
         active_sheet[f'{col_letter}{str(int(row_for_results+2))}'] = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
+
+    # TODO: replace with loop
+    active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results))}'] = f'=SUM({num_hash(min_col-1)}{row_for_results}:{num_hash(max_col-1)}{row_for_results})'
+    active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results+1))}'] = f'=SUM({num_hash(min_col-1)}{row_for_results+1}:{num_hash(max_col-1)}{row_for_results+1})'
+    active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results+2))}'] = f'=SUM({num_hash(min_col-1)}{row_for_results+2}:{num_hash(max_col-1)}{row_for_results+2})'
+
+
+def sum_sheet_total_per_month(sheet, min_row, max_row, min_col, max_col):
+    total = 0
+    for r in sheet.iter_cols(min_row=min_row, min_col=min_col, max_row=max_row, max_col=max_col):
+        for cell in r:
+            total = total + float(cell.value)
+    return total
+
+
 
 def set_cell_fill(sheet, cell, color_key):
     sheet[cell.coordinate].fill = Constants.get_fill(color_key)
@@ -219,6 +258,9 @@ def set_months_titles(sheet, row, min_col, max_col):
         year = str(get_current_year(i))[2:]
         sheet[f'{letter}{row}'] = f'{month}-{year}'
         set_cell_fill(sheet, sheet[f'{letter}{row}'], 'title')
+    letter = num_hash(max_col)
+    sheet[f'{letter}{row}'] = 'Total'
+    set_cell_fill(sheet, sheet[f'{letter}{row}'], 'title')
 
 
 def get_current_year(month_key):

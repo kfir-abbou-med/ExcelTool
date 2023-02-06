@@ -36,7 +36,7 @@ results_text = 'results'
 actual_text = 'Actual'
 budget_text = 'Budget'
 diff_Budget = 'Diff Budget vs Actual'
-
+totals_text = 'Totals'
 
 def get_fill(name):
     if name == 'cc':

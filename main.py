@@ -29,16 +29,17 @@ def autofit_cols(file, sheet, name):
 
     writer.save()
 
+
 def set_auto_fit_width1(sheet):
     for column in sheet.columns:
         # col_width = (max(sheet[column].astype(str).map(len).max(), len(column)) + 2) * 3.3
         col_width = (column[5])
         # col_idx = sheet.columns.get_loc(column)
-
         # col_letter = openpyxl.utils.cell.get_column_letter(col_idx + 1)
         col_letter = column[2].column_letter
         # sheet.column_dimensions[str(col_letter)].width = col_width
         sheet.column_dimensions[str(col_letter)].bestFit = True
+
 
 def get_max_text_width(sheet, col_index):
     width = 0
@@ -66,9 +67,42 @@ def set_hard_coded_text(sheet, cost_center):
     sheet['B1'] = cost_center
 
 
+def get_all_total_per_month(sheet):
+    totals = {}
+    # Number of columns shifted
+    factor = 2
+    for colidx in sheet.iter_cols(min_row=sheet.max_row, min_col=3, max_row=sheet.max_row, max_col=sheet.max_column):
+        key = colidx[0].col_idx
+        val = sheet[colidx[0].coordinate].value
+        month = sheet[f'{colidx[0].column_letter}3'].value
+        months_range = range(1, 12, 1)
+        if month is not None and month in months_range:
+            if val is None:
+                val = 0
+            totals[key-factor] = val
+    return totals
+
+
+all_sheets_total_per_month = {}
+
+
+def init_all_sheets_total_per_month():
+    for i in range(1, 13):
+        all_sheets_total_per_month[i] = 0
+
+
+def add_to_all_sheets_total(single_sheet_total):
+    for key in single_sheet_total.keys():
+        if all_sheets_total_per_month.__contains__(key):
+            all_sheets_total_per_month[key] = all_sheets_total_per_month[key] + single_sheet_total[key]
+        else:
+            all_sheets_total_per_month[key] = single_sheet_total[key]
+
+
 def main():
     excel_dir = r'C:\Temp\ExcelPivotInput'
     files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
+    init_all_sheets_total_per_month()
 
     input_file = files[0]
     if not os.path.exists(excel_dir):
@@ -96,15 +130,16 @@ def main():
 
     # load excel file
     workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
-    sheet_BUDGET = 'BUDGET'
-    workbook.create_sheet(sheet_BUDGET)
-    ExcelUtils.set_const_text_sum_sheet(workbook[sheet_BUDGET])
+
+    workbook.create_sheet(Constants.totals_text)
+    ExcelUtils.set_const_text_sum_sheet(workbook[Constants.totals_text])
     # TODO: check if save is needed - in terms of active area - max row/col
     workbook.save(tmp_output_file)
     # open workbook
+    totals_per_month = {}
     for sheet in workbook.sheetnames:
-        if sheet == sheet_BUDGET:
-            pass
+        if sheet == Constants.totals_text:
+            continue
 
         curr_sheet = workbook[sheet]
         set_hard_coded_text(curr_sheet, sheet)
@@ -112,11 +147,16 @@ def main():
         last_cell_occupied = ExcelUtils.get_last_row_column(curr_sheet)
         last_row = last_cell_occupied[0]
         last_col = last_cell_occupied[1]
-        ExcelUtils.set_totals_for_budget(workbook[sheet_BUDGET], workbook[sheet], last_row, last_col)
+        ExcelUtils.set_totals_for_budget(workbook[Constants.totals_text], workbook[sheet], last_row, last_col)
+        #
+
         workbook.save(str(tmp_output_file))
         # Set text
         ExcelUtils.calc_and_set_total_for_product(curr_sheet, 5, last_row, 3, last_col)
         ExcelUtils.set_absolute_text(curr_sheet, last_col + 2, last_cell_occupied[0] + 1)
+        workbook.save(tmp_output_file) # TODO: remove save
+        totals_for_sheet = get_all_total_per_month(workbook[sheet])
+        add_to_all_sheets_total(totals_for_sheet)
 
         # Set some style issues
         ExcelUtils.set_fill_on_area(curr_sheet, min_row=1, max_row=5, min_col=1, max_col=last_col, color_key='title')
@@ -138,11 +178,12 @@ def main():
 
         # set_auto_fit_width1(curr_sheet)
 
+    ExcelUtils.set_all_totals(workbook[Constants.totals_text], all_sheets_total_per_month)
     # workbook.save(tmp_output_file)
     # Copy all results to a single sheet
     # workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
     results_sheet = workbook.create_sheet(Constants.results_text)
-    all_sheets_but_results = (s_ for s_ in workbook.sheetnames if s_ != Constants.results_text)
+    all_sheets_but_results = (s_ for s_ in workbook.sheetnames if s_ != Constants.results_text and s_ != Constants.totals_text)
 
     for sheet in all_sheets_but_results:
         # file = Constants.output_file_name
