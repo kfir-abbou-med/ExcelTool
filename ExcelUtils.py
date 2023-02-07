@@ -97,6 +97,7 @@ def set_months_title(sheet, last_col):
     return sheet
 
 
+
 def is_float(string):
     # Compile a regular expression pattern to match valid float values
     pattern = r"^[-+]?[0-9]*\.?[0-9]+$"
@@ -123,6 +124,7 @@ def calc_months_difference(sheet, min_row, max_row, min_col, max_col):
         if current_month_val is None:
             current_month_val = 0
         sheet.cell(row=r, column=max_col+1).value = current_month_val - previous_month_val
+        # set_cell_number_format(sheet.cell(row=r, column=max_col+1))
     return sheet
 
 
@@ -134,20 +136,34 @@ def set_bold_text(sheet, min_row=1, max_row=None, min_col=1, max_col=None, is_bo
     return sheet
 
 
-def set_cell_number_format(sheet, min_row, max_row, min_col, max_col):
+# def set_cell_number_format(sheet, min_row, max_row, min_col, max_col):
+#     num_format = '#,##0.00;"-"#,##0.00'
+#     # num_format = '#,##0.00$;"-"#,##0$'
+#
+#     for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
+#         for cell in row:
+#             col = num_hash(cell.column)
+#             sheet[f'{col}{row[0].row}'].number_format = num_format
+#             if cell.value is None:
+#                 cell.value = 0
+#
+#             cell.value = float(cell.value)
+#     return sheet
+
+def set_all_sheet_numbers_to_number_format(sheet, min_row=1, min_col=1):
+
+    for r in range(min_row, sheet.max_row):
+        for c in range(min_col, sheet.max_column):
+            cell = sheet.cell(row=r, column=c)
+            if cell.value is not None:
+                is_numeric = is_float(str(cell.value))
+                if is_numeric is True:
+                    set_cell_number_format(cell)
+
+
+def set_cell_number_format(cell):
     num_format = '#,##0.00;"-"#,##0.00'
-    # num_format = '#,##0.00$;"-"#,##0$'
-
-    for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-        for cell in row:
-            col = num_hash(cell.column)
-            sheet[f'{col}{row[0].row}'].number_format = num_format
-            if cell.value is None:
-                cell.value = 0
-
-            cell.value = float(cell.value)
-
-    return sheet
+    cell.number_format = num_format
 
 
 def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
@@ -182,10 +198,14 @@ def set_all_totals(sheet, all_sheets_total_per_month):
         actual.value = all_sheets_total_per_month[key]
         budget.value = 0
         diff.value = f'={letter}6-{letter}5'
+        set_cell_number_format(diff)
 
     sheet["N5"] = '=SUM(B5:M5)'
     sheet["N6"] = '=SUM(B5:M6)'
     sheet["N8"] = '=SUM(B5:M8)'
+    set_cell_number_format(sheet["N5"])
+    set_cell_number_format(sheet["N6"])
+    set_cell_number_format(sheet["N8"])
 
 
 def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
@@ -218,11 +238,22 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
         budget_cell.value = 0
         diff_cell.value = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
         set_cell_border(active_sheet, budget_cell, False, True, False, False)
+        set_cell_number_format(actual_cell)
+        set_cell_number_format(budget_cell)
+        set_cell_number_format(diff_cell)
 
     # TODO: replace with loop
-    active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results))}'] = f'=SUM({num_hash(min_col-1)}{row_for_results}:{num_hash(max_col-1)}{row_for_results})'
-    active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results+1))}'] = f'=SUM({num_hash(min_col-1)}{row_for_results+1}:{num_hash(max_col-1)}{row_for_results+1})'
-    active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results+2))}'] = f'=SUM({num_hash(min_col-1)}{row_for_results+2}:{num_hash(max_col-1)}{row_for_results+2})'
+    actual_total = active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results))}']
+    budget_total = active_sheet[f'{num_hash(max_col + 1)}{str(int(row_for_results + 1))}']
+    diff_total = active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results+2))}']
+
+    actual_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results}:{num_hash(max_col-1)}{row_for_results})'
+    budget_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results+1}:{num_hash(max_col-1)}{row_for_results+1})'
+    diff_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results+2}:{num_hash(max_col-1)}{row_for_results+2})'
+
+    set_cell_number_format(actual_total)
+    set_cell_number_format(budget_total)
+    set_cell_number_format(diff_total)
 
 
 def sum_sheet_total_per_month(sheet, min_row, max_row, min_col, max_col):
@@ -273,11 +304,8 @@ def get_current_year(month_key):
     else:
         return datetime.date.today().year
 
-def calc_and_set_total_for_product(sheet, min_row, max_row, min_col, max_col):
-    # ws['A9'] = '=SUM(A2:A8)'
-    # col = num_hash(min_col)
-    # sheet[f'{col}{max_row+1}'] = f'=SUM({col}{min_row}:{col}{max_row})'
 
+def calc_and_set_total_for_product(sheet, min_row, max_row, min_col, max_col):
     total_product = {}
     for row in sheet.iter_rows(min_row, max_row, min_col, max_col):
         for cell in row:

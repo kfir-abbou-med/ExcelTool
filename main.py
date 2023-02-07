@@ -166,11 +166,13 @@ def main():
         ExcelUtils.set_months_title(sheet=curr_sheet, last_col=last_col)
         ExcelUtils.calc_months_difference(sheet=curr_sheet, min_row=5, max_row=last_row + 2, min_col=3,
                                           max_col=last_col)
+        ExcelUtils.set_all_sheet_numbers_to_number_format(curr_sheet, min_row=4, min_col=3)
 
     ExcelUtils.set_all_totals(totals_sheet, all_sheets_total_per_month)
     ExcelUtils.set_alignment(totals_sheet, 1, totals_sheet.max_row, 1, totals_sheet.max_column,  'center', 'center')
     ExcelUtils.set_fill_on_area(totals_sheet, 1, 4, 1, totals_sheet.max_column, 'title')
     ExcelUtils.set_bold_text(totals_sheet, 8, 8, 1, totals_sheet.max_column, True)
+    ExcelUtils.set_all_sheet_numbers_to_number_format(totals_sheet, min_row=5)
 
     # Copy all results to a single sheet
     results_sheet = workbook.create_sheet(Constants.results_text)
@@ -187,6 +189,7 @@ def main():
 
     # saving the destination Excel file
     AutoFitTool.auto_fit_cols(results_sheet)
+    AutoFitTool.auto_fit_cols(totals_sheet)
     workbook.save(str(Constants.output_file_name))
     shutil.rmtree(excel_dir)
 
