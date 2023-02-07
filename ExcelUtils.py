@@ -209,10 +209,15 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
         total_for_col = calc_total_for_column(data_sheet, 5, max_row, col, col)
         row_for_results = active_sheet_max_row+1
         col_letter = num_hash(col-1)
+
         actual_cell = active_sheet[f'{col_letter}{row_for_results}']
+        budget_cell = active_sheet[f'{col_letter}{str(int(row_for_results+1))}']
+        diff_cell = active_sheet[f'{col_letter}{str(int(row_for_results+2))}']
+
         actual_cell.value = float(total_for_col)
-        active_sheet[f'{col_letter}{str(int(row_for_results+1))}'] = 0
-        active_sheet[f'{col_letter}{str(int(row_for_results+2))}'] = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
+        budget_cell.value = 0
+        diff_cell.value = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
+        set_cell_border(active_sheet, budget_cell, False, True, False, False)
 
     # TODO: replace with loop
     active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results))}'] = f'=SUM({num_hash(min_col-1)}{row_for_results}:{num_hash(max_col-1)}{row_for_results})'
@@ -226,7 +231,6 @@ def sum_sheet_total_per_month(sheet, min_row, max_row, min_col, max_col):
         for cell in r:
             total = total + float(cell.value)
     return total
-
 
 
 def set_cell_fill(sheet, cell, color_key):

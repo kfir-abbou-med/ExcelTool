@@ -17,34 +17,34 @@ def read_excel(file, sheet_name='Data base'):
     return df
 
 
-def autofit_cols(file, sheet, name):
-    writer = pd.ExcelWriter(file, engine="xlsxwriter")
-
-        # Loop through columns of current worksheet,
-        # and set correct width for each one
-    for column in sheet:
-        column_width = max(sheet[column].astype(str).map(len).max(), len(column))
-        col_idx = sheet.columns.get_loc(column)
-        writer.sheets[0].set_column(col_idx, col_idx, column_width)
-
-    writer.save()
-
-
-def set_auto_fit_width1(sheet):
-    for column in sheet.columns:
-        # col_width = (max(sheet[column].astype(str).map(len).max(), len(column)) + 2) * 3.3
-        col_width = (column[5])
-        # col_idx = sheet.columns.get_loc(column)
-        # col_letter = openpyxl.utils.cell.get_column_letter(col_idx + 1)
-        col_letter = column[2].column_letter
-        # sheet.column_dimensions[str(col_letter)].width = col_width
-        sheet.column_dimensions[str(col_letter)].bestFit = True
+# def autofit_cols(file, sheet, name):
+#     writer = pd.ExcelWriter(file, engine="xlsxwriter")
+#
+#         # Loop through columns of current worksheet,
+#         # and set correct width for each one
+#     for column in sheet:
+#         column_width = max(sheet[column].astype(str).map(len).max(), len(column))
+#         col_idx = sheet.columns.get_loc(column)
+#         writer.sheets[0].set_column(col_idx, col_idx, column_width)
+#
+#     writer.save()
 
 
-def get_max_text_width(sheet, col_index):
-    width = 0
-    for row in sheet.max_rows:
-        cell = sheet.cell(row, col_index)
+# def set_auto_fit_width1(sheet):
+#     for column in sheet.columns:
+#         # col_width = (max(sheet[column].astype(str).map(len).max(), len(column)) + 2) * 3.3
+#         col_width = (column[5])
+#         # col_idx = sheet.columns.get_loc(column)
+#         # col_letter = openpyxl.utils.cell.get_column_letter(col_idx + 1)
+#         col_letter = column[2].column_letter
+#         # sheet.column_dimensions[str(col_letter)].width = col_width
+#         sheet.column_dimensions[str(col_letter)].bestFit = True
+
+
+# def get_max_text_width(sheet, col_index):
+#     width = 0
+#     for row in sheet.max_rows:
+#         cell = sheet.cell(row, col_index)
 
 
 def set_auto_fit_width(file, sheet_name, ws):
@@ -112,7 +112,6 @@ def main():
     cost_centers = df[Constants.cost_center_text].tolist()
     cost_centers = set(cost_centers)
     tmp_output_file = str(f'{excel_dir}\\tmp_out.xlsx')
-    # output_file = str(f'{excel_dir}\\out.xlsx')
     pivots = {}
 
     # Create pivot data and write to file
@@ -126,17 +125,14 @@ def main():
             center_int = int(cc)
             pivots[center_int].to_excel(writer_pivot, sheet_name=center)
 
-
-
     # load excel file
     workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
 
     workbook.create_sheet(Constants.totals_text)
-    ExcelUtils.set_const_text_sum_sheet(workbook[Constants.totals_text])
-    # TODO: check if save is needed - in terms of active area - max row/col
-    workbook.save(tmp_output_file)
+    totals_sheet = workbook[Constants.totals_text]
+    ExcelUtils.set_const_text_sum_sheet(totals_sheet)
+
     # open workbook
-    totals_per_month = {}
     for sheet in workbook.sheetnames:
         if sheet == Constants.totals_text:
             continue
@@ -147,14 +143,12 @@ def main():
         last_cell_occupied = ExcelUtils.get_last_row_column(curr_sheet)
         last_row = last_cell_occupied[0]
         last_col = last_cell_occupied[1]
-        ExcelUtils.set_totals_for_budget(workbook[Constants.totals_text], workbook[sheet], last_row, last_col)
-        #
+        ExcelUtils.set_totals_for_budget(totals_sheet, workbook[sheet], last_row, last_col)
 
-        workbook.save(str(tmp_output_file))
         # Set text
         ExcelUtils.calc_and_set_total_for_product(curr_sheet, 5, last_row, 3, last_col)
         ExcelUtils.set_absolute_text(curr_sheet, last_col + 2, last_cell_occupied[0] + 1)
-        workbook.save(tmp_output_file) # TODO: remove save
+
         totals_for_sheet = get_all_total_per_month(workbook[sheet])
         add_to_all_sheets_total(totals_for_sheet)
 
@@ -169,24 +163,21 @@ def main():
                                  is_bold=False)
         ExcelUtils.set_bold_text(sheet=curr_sheet, min_row=last_row + 1, max_row=last_row + 1, min_col=1,
                                  max_col=last_col, is_bold=True)
-        # ExcelUtils.set_cell_number_format(sheet=curr_sheet, min_row=5, max_row=last_row + 1, min_col=3,
-        #                                   max_col=last_col + 1)
         ExcelUtils.set_months_title(sheet=curr_sheet, last_col=last_col)
         ExcelUtils.calc_months_difference(sheet=curr_sheet, min_row=5, max_row=last_row + 2, min_col=3,
                                           max_col=last_col)
-        # set_auto_fit_width(tmp_output_file, sheet, curr_sheet)
 
-        # set_auto_fit_width1(curr_sheet)
+    ExcelUtils.set_all_totals(totals_sheet, all_sheets_total_per_month)
+    ExcelUtils.set_alignment(totals_sheet, 1, totals_sheet.max_row, 1, totals_sheet.max_column,  'center', 'center')
+    ExcelUtils.set_fill_on_area(totals_sheet, 1, 4, 1, totals_sheet.max_column, 'title')
+    ExcelUtils.set_bold_text(totals_sheet, 8, 8, 1, totals_sheet.max_column, True)
 
-    ExcelUtils.set_all_totals(workbook[Constants.totals_text], all_sheets_total_per_month)
-    # workbook.save(tmp_output_file)
     # Copy all results to a single sheet
-    # workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
     results_sheet = workbook.create_sheet(Constants.results_text)
-    all_sheets_but_results = (s_ for s_ in workbook.sheetnames if s_ != Constants.results_text and s_ != Constants.totals_text)
+    all_sheets_but_results = (s_ for s_ in workbook.sheetnames if s_ != Constants.results_text and
+                              s_ != Constants.totals_text)
 
     for sheet in all_sheets_but_results:
-        # file = Constants.output_file_name
         active_sheet = workbook[sheet]
         ExcelUtils.copy_data_to_new_sheet(sheet=active_sheet, new_sheet=results_sheet)
         # delete sheet
@@ -194,7 +185,7 @@ def main():
 
     results_sheet.delete_cols(1, 2)
 
-    # saving the destination excel file
+    # saving the destination Excel file
     AutoFitTool.auto_fit_cols(results_sheet)
     workbook.save(str(Constants.output_file_name))
     shutil.rmtree(excel_dir)
