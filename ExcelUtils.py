@@ -201,8 +201,8 @@ def set_all_totals(sheet, all_sheets_total_per_month):
         set_cell_number_format(diff)
 
     sheet["N5"] = '=SUM(B5:M5)'
-    sheet["N6"] = '=SUM(B5:M6)'
-    sheet["N8"] = '=SUM(B5:M8)'
+    sheet["N6"] = '=SUM(B6:M6)'
+    sheet["N8"] = '=SUM(B8:M8)'
     set_cell_number_format(sheet["N5"])
     set_cell_number_format(sheet["N6"])
     set_cell_number_format(sheet["N8"])
@@ -299,10 +299,10 @@ def set_months_titles(sheet, row, min_col, max_col):
 
 
 def get_current_year(month_key):
-    if month_key > 8:
-        return datetime.date.today().year + 1
-    else:
+    if month_key > 9:
         return datetime.date.today().year
+    else:
+        return datetime.date.today().year - 1
 
 
 def calc_and_set_total_for_product(sheet, min_row, max_row, min_col, max_col):
