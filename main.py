@@ -2,6 +2,7 @@ import glob
 import os.path
 import pathlib
 import shutil
+import sys
 
 import pandas as pd
 import openpyxl.utils.cell
@@ -101,10 +102,11 @@ def add_to_all_sheets_total(single_sheet_total):
 
 def main():
     excel_dir = r'C:\Temp\ExcelPivotInput'
-    files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
+    # files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
     init_all_sheets_total_per_month()
 
-    input_file = files[0]
+    input_file = sys.argv[1] #files[0]
+    print(f'Loaded input: {input_file}')
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
 
@@ -195,3 +197,5 @@ def main():
 
 
 main()
+# pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico"
+# --hidden-import "pandas"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
