@@ -1,4 +1,4 @@
-from openpyxl.styles import Color, PatternFill, Font, Border
+from openpyxl.styles import PatternFill
 
 months = {
     1: 'May',
@@ -38,7 +38,10 @@ budget_text = 'Budget'
 diff_Budget = 'Diff Budget vs Actual'
 totals_text = 'Totals'
 
+
 def get_fill(name):
+    white = PatternFill(patternType='solid', fgColor='FFFFFF')
+    fill = white
     if name == 'cc':
         fill = PatternFill(patternType='solid', fgColor='f1c232')
     elif name == 'title':

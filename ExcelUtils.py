@@ -97,17 +97,10 @@ def set_months_title(sheet, last_col):
     return sheet
 
 
-
 def is_float(string):
     # Compile a regular expression pattern to match valid float values
     pattern = r"^[-+]?[0-9]*\.?[0-9]+$"
-
-    # Use re.match to check if the string matches the pattern
-    # Returns a match object if there is a match, else None
     match = re.match(pattern, string)
-
-    # Convert the match object to a boolean value
-    # Returns True if there is a match, else False
     return bool(match)
 
 
@@ -135,20 +128,6 @@ def set_bold_text(sheet, min_row=1, max_row=None, min_col=1, max_col=None, is_bo
             sheet[f'{col}{row[0].row}'].font = Font(bold=is_bold)
     return sheet
 
-
-# def set_cell_number_format(sheet, min_row, max_row, min_col, max_col):
-#     num_format = '#,##0.00;"-"#,##0.00'
-#     # num_format = '#,##0.00$;"-"#,##0$'
-#
-#     for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-#         for cell in row:
-#             col = num_hash(cell.column)
-#             sheet[f'{col}{row[0].row}'].number_format = num_format
-#             if cell.value is None:
-#                 cell.value = 0
-#
-#             cell.value = float(cell.value)
-#     return sheet
 
 def set_all_sheet_numbers_to_number_format(sheet, min_row=1, min_col=1):
 
