@@ -1,63 +1,18 @@
-import glob
 import os.path
-import pathlib
 import shutil
-import sys
-
 import pandas as pd
 import openpyxl.utils.cell
 import openpyxl
-
 import AutoFitTool
 import Constants
 import ExcelUtils
 
+all_sheets_total_per_month = {}
 
-def read_excel(file, sheet_name='Data base'):
-    df = pd.read_excel(file, sheet_name=sheet_name)  # can also index sheet by name or fetch all sheets
+
+def read_excel(file):
+    df = pd.read_excel(file, sheet_name=0)  # can also index sheet by name or fetch all sheets
     return df
-
-
-# def autofit_cols(file, sheet, name):
-#     writer = pd.ExcelWriter(file, engine="xlsxwriter")
-#
-#         # Loop through columns of current worksheet,
-#         # and set correct width for each one
-#     for column in sheet:
-#         column_width = max(sheet[column].astype(str).map(len).max(), len(column))
-#         col_idx = sheet.columns.get_loc(column)
-#         writer.sheets[0].set_column(col_idx, col_idx, column_width)
-#
-#     writer.save()
-
-
-# def set_auto_fit_width1(sheet):
-#     for column in sheet.columns:
-#         # col_width = (max(sheet[column].astype(str).map(len).max(), len(column)) + 2) * 3.3
-#         col_width = (column[5])
-#         # col_idx = sheet.columns.get_loc(column)
-#         # col_letter = openpyxl.utils.cell.get_column_letter(col_idx + 1)
-#         col_letter = column[2].column_letter
-#         # sheet.column_dimensions[str(col_letter)].width = col_width
-#         sheet.column_dimensions[str(col_letter)].bestFit = True
-
-
-# def get_max_text_width(sheet, col_index):
-#     width = 0
-#     for row in sheet.max_rows:
-#         cell = sheet.cell(row, col_index)
-
-
-def set_auto_fit_width(file, sheet_name, ws):
-    with pd.ExcelWriter(file, engine='openpyxl', mode='a', if_sheet_exists="overlay") as writer:
-        # for sheet in writer.sheets:
-        out_df = pd.read_excel(file, sheet_name=str(sheet_name))
-        for column in out_df:
-            col_width = (max(out_df[column].astype(str).map(len).max(), len(column)) + 2)
-            col_idx = out_df.columns.get_loc(column)
-            col_letter = openpyxl.utils.cell.get_column_letter(col_idx + 1)
-            writer.sheets[str(sheet_name)].column_dimensions[str(col_letter)].width = col_width
-            ws.column_dimensions[str(col_letter)].width = col_width
 
 
 def set_hard_coded_text(sheet, cost_center):
@@ -84,9 +39,6 @@ def get_all_total_per_month(sheet):
     return totals
 
 
-all_sheets_total_per_month = {}
-
-
 def init_all_sheets_total_per_month():
     for i in range(1, 13):
         all_sheets_total_per_month[i] = 0
@@ -100,12 +52,45 @@ def add_to_all_sheets_total(single_sheet_total):
             all_sheets_total_per_month[key] = single_sheet_total[key]
 
 
-def main():
+def set_temp_sheet_style(curr_sheet, last_row, last_col):
+    ExcelUtils.set_fill_on_area(curr_sheet, min_row=1, max_row=5, min_col=1, max_col=last_col, color_key='title')
+    curr_sheet['B2'].fill = Constants.get_fill('cc')
+    ExcelUtils.remove_borders(curr_sheet)
+    ExcelUtils.set_border_under_row(curr_sheet, last_row, last_row, 1, last_col)
+    ExcelUtils.set_border_under_row(curr_sheet, 4, 4, last_col + 1, last_col + 2)
+    ExcelUtils.set_alignment(curr_sheet, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
+    ExcelUtils.set_bold_text(sheet=curr_sheet, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1,
+                             is_bold=False)
+    ExcelUtils.set_bold_text(sheet=curr_sheet, min_row=last_row + 1, max_row=last_row + 1, min_col=1,
+                             max_col=last_col, is_bold=True)
+    ExcelUtils.set_months_title(sheet=curr_sheet, last_col=last_col)
+    ExcelUtils.calc_months_difference(sheet=curr_sheet, min_row=5, max_row=last_row + 2, min_col=3,
+                                      max_col=last_col)
+    ExcelUtils.set_all_sheet_numbers_to_number_format(curr_sheet, min_row=4, min_col=3)
+
+
+def set_totals_sheet_style(totals_sheet):
+    ExcelUtils.set_all_totals(totals_sheet, all_sheets_total_per_month)
+    ExcelUtils.set_alignment(totals_sheet, 1, totals_sheet.max_row, 1, totals_sheet.max_column, 'center', 'center')
+    ExcelUtils.set_fill_on_area(totals_sheet, 1, 4, 1, totals_sheet.max_column, 'title')
+    ExcelUtils.set_bold_text(totals_sheet, 8, 8, 1, totals_sheet.max_column, True)
+    ExcelUtils.set_all_sheet_numbers_to_number_format(totals_sheet, min_row=5)
+
+
+def create_totals_sheet_and_init_consts(workbook, totals):
+    workbook.create_sheet(totals)
+    totals_sheet = workbook[totals]
+    ExcelUtils.set_const_text_sum_sheet(totals_sheet)
+    return totals_sheet
+
+
+def main_function():
     excel_dir = r'C:\Temp\ExcelPivotInput'
     # files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
     init_all_sheets_total_per_month()
 
     input_file = sys.argv[1] #files[0]
+    # input_file = r'C:\Users\abbouk2\Downloads\from kfir\1.2023 data base.xlsx'
     print(f'Loaded input: {input_file}')
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
@@ -130,9 +115,7 @@ def main():
     # load excel file
     workbook = openpyxl.load_workbook(filename=tmp_output_file, data_only=False)
 
-    workbook.create_sheet(Constants.totals_text)
-    totals_sheet = workbook[Constants.totals_text]
-    ExcelUtils.set_const_text_sum_sheet(totals_sheet)
+    totals_sheet = create_totals_sheet_and_init_consts(workbook, Constants.totals_text)
 
     # open workbook
     for sheet in workbook.sheetnames:
@@ -143,38 +126,24 @@ def main():
         set_hard_coded_text(curr_sheet, sheet)
 
         last_cell_occupied = ExcelUtils.get_last_row_column(curr_sheet)
-        last_row = last_cell_occupied[0]
-        last_col = last_cell_occupied[1]
+        last_row = last_cell_occupied[0] # row
+        last_col = last_cell_occupied[1] # col
+
         ExcelUtils.set_totals_for_budget(totals_sheet, workbook[sheet], last_row, last_col)
 
         # Set text
         ExcelUtils.calc_and_set_total_for_product(curr_sheet, 5, last_row, 3, last_col)
         ExcelUtils.set_absolute_text(curr_sheet, last_col + 2, last_cell_occupied[0] + 1)
 
+        # Calculate totals
         totals_for_sheet = get_all_total_per_month(workbook[sheet])
         add_to_all_sheets_total(totals_for_sheet)
 
         # Set some style issues
-        ExcelUtils.set_fill_on_area(curr_sheet, min_row=1, max_row=5, min_col=1, max_col=last_col, color_key='title')
-        curr_sheet['B2'].fill = Constants.get_fill('cc')
-        ExcelUtils.remove_borders(curr_sheet)
-        ExcelUtils.set_border_under_row(curr_sheet, last_row, last_row, 1, last_col)
-        ExcelUtils.set_border_under_row(curr_sheet, 4, 4, last_col + 1, last_col + 2)
-        ExcelUtils.set_alignment(curr_sheet, 1, last_row + 1, 1, last_col + 1, 'left', 'center')
-        ExcelUtils.set_bold_text(sheet=curr_sheet, min_row=1, max_row=last_row + 1, min_col=1, max_col=last_col + 1,
-                                 is_bold=False)
-        ExcelUtils.set_bold_text(sheet=curr_sheet, min_row=last_row + 1, max_row=last_row + 1, min_col=1,
-                                 max_col=last_col, is_bold=True)
-        ExcelUtils.set_months_title(sheet=curr_sheet, last_col=last_col)
-        ExcelUtils.calc_months_difference(sheet=curr_sheet, min_row=5, max_row=last_row + 2, min_col=3,
-                                          max_col=last_col)
-        ExcelUtils.set_all_sheet_numbers_to_number_format(curr_sheet, min_row=4, min_col=3)
+        set_temp_sheet_style(curr_sheet, last_row, last_col)
 
-    ExcelUtils.set_all_totals(totals_sheet, all_sheets_total_per_month)
-    ExcelUtils.set_alignment(totals_sheet, 1, totals_sheet.max_row, 1, totals_sheet.max_column,  'center', 'center')
-    ExcelUtils.set_fill_on_area(totals_sheet, 1, 4, 1, totals_sheet.max_column, 'title')
-    ExcelUtils.set_bold_text(totals_sheet, 8, 8, 1, totals_sheet.max_column, True)
-    ExcelUtils.set_all_sheet_numbers_to_number_format(totals_sheet, min_row=5)
+    set_totals_sheet_style(totals_sheet)
+
 
     # Copy all results to a single sheet
     results_sheet = workbook.create_sheet(Constants.results_text)
@@ -193,9 +162,14 @@ def main():
     AutoFitTool.auto_fit_cols(results_sheet)
     AutoFitTool.auto_fit_cols(totals_sheet)
     workbook.save(str(Constants.output_file_name))
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(f'Output created in: {dir_path}\\{str(Constants.output_file_name)}')
     shutil.rmtree(excel_dir)
 
 
-main()
+main_function()
+
+
+# Create exe by copying this lines
 # pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico"
 # --hidden-import "pandas"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
