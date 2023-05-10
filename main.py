@@ -31,7 +31,7 @@ def get_all_total_per_month(sheet):
         key = colidx[0].col_idx
         val = sheet[colidx[0].coordinate].value
         month = sheet[f'{colidx[0].column_letter}3'].value
-        months_range = range(1, 12, 1)
+        months_range = range(1, 13, 1)
         if month is not None and month in months_range:
             if val is None:
                 val = 0
