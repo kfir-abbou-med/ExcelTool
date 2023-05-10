@@ -90,7 +90,7 @@ def main_function():
     init_all_sheets_total_per_month()
 
     input_file = sys.argv[1] #files[0]
-    # input_file = r'C:\Users\abbouk2\Downloads\from kfir\1.2023 data base.xlsx'
+    # input_file = r'C:\Temp\einav\db.xlsx'
     print(f'Loaded input: {input_file}')
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
@@ -171,5 +171,4 @@ main_function()
 
 
 # Create exe by copying this lines
-# pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico"
-# --hidden-import "pandas"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
+# pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico" --hidden-import "pandas"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"

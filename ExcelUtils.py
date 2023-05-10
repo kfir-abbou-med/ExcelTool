@@ -189,7 +189,7 @@ def set_all_totals(sheet, all_sheets_total_per_month):
 
 def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
     min_col = 1
-    max_col = 12 + 1
+    max_col = 12 
     active_sheet_max_row = active_sheet.max_row + 4
 
     # TODO: set bold
@@ -204,7 +204,7 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
     set_months_titles(sheet=active_sheet, row=active_sheet_max_row, min_col=2, max_col=14)  # TODO: use args
     min_col = 3
     # set calculated values
-    for col in range(3, max_col):
+    for col in range(min_col, max_col + min_col):
         total_for_col = calc_total_for_column(data_sheet, 5, max_row, col, col)
         row_for_results = active_sheet_max_row+1
         col_letter = num_hash(col-1)
@@ -222,13 +222,13 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
         set_cell_number_format(diff_cell)
 
     # TODO: replace with loop
-    actual_total = active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results))}']
-    budget_total = active_sheet[f'{num_hash(max_col + 1)}{str(int(row_for_results + 1))}']
-    diff_total = active_sheet[f'{num_hash(max_col+1)}{str(int(row_for_results+2))}']
+    actual_total = active_sheet[f'{num_hash(max_col+2)}{str(int(row_for_results))}']
+    budget_total = active_sheet[f'{num_hash(max_col + 2)}{str(int(row_for_results + 1))}']
+    diff_total = active_sheet[f'{num_hash(max_col+2)}{str(int(row_for_results+2))}']
 
-    actual_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results}:{num_hash(max_col-1)}{row_for_results})'
-    budget_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results+1}:{num_hash(max_col-1)}{row_for_results+1})'
-    diff_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results+2}:{num_hash(max_col-1)}{row_for_results+2})'
+    actual_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results}:{num_hash(max_col+1)}{row_for_results})'
+    budget_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results+1}:{num_hash(max_col+1)}{row_for_results+1})'
+    diff_total.value = f'=SUM({num_hash(min_col-1)}{row_for_results+2}:{num_hash(max_col+1)}{row_for_results+2})'
 
     set_cell_number_format(actual_total)
     set_cell_number_format(budget_total)
