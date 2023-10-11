@@ -29,12 +29,14 @@ def set_absolute_text(sheet, comments_col_num, total_row_num):
 def calc_total_for_column(sheet, min_row, max_row, min_col, max_col):
     total_period = 0
     for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-
         for cell in row:
             if cell.value is not None:
                 total_period = float(cell.value) + total_period
         # write_results(sheet, row[0].row, max_col + 1, total_period)
-    return total_period
+    col_letter = num_hash(min_col)
+    month_Number =  sheet[f'{col_letter}3'].value
+
+    return (month_Number, total_period)
 
 
 def copy_data_to_new_sheet(sheet, new_sheet):
@@ -203,23 +205,37 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
     active_sheet[f'A{str(int(active_sheet_max_row+3))}'] = Constants.diff_Budget
     set_months_titles(sheet=active_sheet, row=active_sheet_max_row, min_col=2, max_col=14)  # TODO: use args
     min_col = 3
+
     # set calculated values
     for col in range(min_col, max_col + min_col):
-        total_for_col = calc_total_for_column(data_sheet, 5, max_row, col, col)
+        total_per_month = calc_total_for_column(data_sheet, 5, max_row, col, col)
         row_for_results = active_sheet_max_row+1
         col_letter = num_hash(col-1)
 
-        actual_cell = active_sheet[f'{col_letter}{row_for_results}']
-        budget_cell = active_sheet[f'{col_letter}{str(int(row_for_results+1))}']
-        diff_cell = active_sheet[f'{col_letter}{str(int(row_for_results+2))}']
+     
+        for i in range(min_col, max_col, 1):
+            col_letter = num_hash(i-1)
+            actual_cell = active_sheet[f'{col_letter}{row_for_results}']
+            budget_cell = active_sheet[f'{col_letter}{str(int(row_for_results+1))}']
+            diff_cell = active_sheet[f'{col_letter}{str(int(row_for_results+2))}']
 
-        actual_cell.value = float(total_for_col)
-        budget_cell.value = 0
-        diff_cell.value = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
-        set_cell_border(active_sheet, budget_cell, False, True, False, False)
-        set_cell_number_format(actual_cell)
-        set_cell_number_format(budget_cell)
-        set_cell_number_format(diff_cell)
+            # check if col is the right period
+            month_Short = str(active_sheet[f'{col_letter}{row_for_results-1}'].value).split('-')[0]
+            month_number = total_per_month[0]
+            if month_number != Constants.monthsNameToInt[month_Short]:
+                if(actual_cell.value is None):
+                    actual_cell.value = 0
+                    budget_cell.value = 0
+                    diff_cell.value = 0
+            else:
+                actual_cell.value = float(total_per_month[1])
+                budget_cell.value = 0
+                diff_cell.value = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
+                set_cell_border(active_sheet, budget_cell, False, True, False, False)
+                set_cell_number_format(actual_cell)
+                set_cell_number_format(budget_cell)
+                set_cell_number_format(diff_cell)
+                break
 
     # TODO: replace with loop
     actual_total = active_sheet[f'{num_hash(max_col+2)}{str(int(row_for_results))}']
@@ -279,9 +295,9 @@ def set_months_titles(sheet, row, min_col, max_col):
 
 def get_current_year(month_key):
     if month_key > 9:
-        return datetime.date.today().year
+        return datetime.date.today().year + 1
     else:
-        return datetime.date.today().year - 1
+        return datetime.date.today().year 
 
 
 def calc_and_set_total_for_product(sheet, min_row, max_row, min_col, max_col):

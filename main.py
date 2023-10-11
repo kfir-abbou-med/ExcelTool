@@ -1,5 +1,4 @@
 import os.path
-import shutil
 import pandas as pd
 import openpyxl.utils.cell
 import openpyxl
@@ -26,7 +25,7 @@ def set_hard_coded_text(sheet, cost_center):
 def get_all_total_per_month(sheet):
     totals = {}
     # Number of columns shifted
-    factor = 2
+    # factor = 2
     for colidx in sheet.iter_cols(min_row=sheet.max_row, min_col=3, max_row=sheet.max_row, max_col=sheet.max_column):
         key = colidx[0].col_idx
         val = sheet[colidx[0].coordinate].value
@@ -35,7 +34,8 @@ def get_all_total_per_month(sheet):
         if month is not None and month in months_range:
             if val is None:
                 val = 0
-            totals[key-factor] = val
+            # totals[key-factor] = val
+            totals[month] = val
     return totals
 
 
@@ -89,8 +89,9 @@ def main_function():
     # files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
     init_all_sheets_total_per_month()
 
-    input_file = sys.argv[1] #files[0]
+    # input_file = sys.argv[1] #files[0]
     # input_file = r'C:\Temp\einav\db.xlsx'
+    input_file = r'C:\Temp\einav\11-10-23\db_.xlsx'
     print(f'Loaded input: {input_file}')
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
@@ -164,11 +165,11 @@ def main_function():
     workbook.save(str(Constants.output_file_name))
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print(f'Output created in: {dir_path}\\{str(Constants.output_file_name)}')
-    shutil.rmtree(excel_dir)
+    # shutil.rmtree(excel_dir)
 
 
 main_function()
 
 
 # Create exe by copying this lines
-# pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico" --hidden-import "pandas"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
+#pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico" --hidden-import "pandas"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
