@@ -2,3 +2,6 @@
 *.xlsx
 *.xlsx
 output/PnL_Calculator.exe
+.idea/.name
+__pycache__/*
+*.pyc
