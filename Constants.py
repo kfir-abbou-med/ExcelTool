@@ -15,6 +15,21 @@ months = {
     12: 'April',
 }
 
+monthsNameToInt = {
+    'May': 1,
+    'Jun': 2,
+    'Jul': 3,
+    'Aug': 4,
+    'Sep': 5,
+    'Oct': 6,
+    'Nov': 7,
+    'Dec': 8,
+    'Jan': 9,
+    'Feb': 10,
+    'Mar': 11,
+    'Apr': 12
+}
+
 cost_centers = {
     511200: 'R&D',
     511201: 'QA',
