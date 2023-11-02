@@ -189,14 +189,14 @@ def set_all_totals(sheet, all_sheets_total_per_month):
     set_cell_number_format(sheet["N8"])
 
 
-def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col):
+def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col, all_cost_centers):
     min_col = 1
     max_col = 12 
     active_sheet_max_row = active_sheet.max_row + 4
 
     # TODO: set bold
     cost_center_cell = active_sheet[f'A{str(active_sheet_max_row)}']
-    cost_center_cell.value = f'{data_sheet.title}- {Constants.cost_centers[int(data_sheet.title)]}'
+    cost_center_cell.value = f'{data_sheet.title}- {all_cost_centers[int(data_sheet.title)]}'
     set_cell_bold(active_sheet, active_sheet[f'A{str(active_sheet_max_row)}'])
     set_cell_border(active_sheet, cost_center_cell, False, True, False, False)
 

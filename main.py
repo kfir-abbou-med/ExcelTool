@@ -14,8 +14,8 @@ def read_excel(file):
     return df
 
 
-def set_hard_coded_text(sheet, cost_center):
-    cost_center_name = Constants.cost_centers[int(cost_center)]
+def set_hard_coded_text(sheet, cost_center, all_cost_centers):
+    cost_center_name = all_cost_centers[int(cost_center)]
     sheet["A1"] = Constants.cost_center_text
     sheet["B2"] = cost_center_name + ' $'
     sheet["A3"] = Constants.sum_of_val_text
@@ -83,6 +83,18 @@ def create_totals_sheet_and_init_consts(workbook, totals):
     ExcelUtils.set_const_text_sum_sheet(totals_sheet)
     return totals_sheet
 
+def get_all_cost_centers(workbook):
+    data = {}
+    sheet_name = workbook.sheetnames[0]
+    sheet = workbook[sheet_name]
+    for row in range(2, sheet.max_row + 1):
+        key = int(sheet['B' + str(row)].value)
+        value = sheet['C' + str(row)].value
+        
+        data[key] = value
+    sorted_dict = {k: data[k] for k in sorted(data)}
+    return sorted_dict
+
 
 def main_function():
     excel_dir = r'C:\Temp\ExcelPivotInput'
@@ -90,15 +102,17 @@ def main_function():
     init_all_sheets_total_per_month()
 
     # input_file = sys.argv[1] #files[0]
-    # input_file = r'C:\Temp\einav\db.xlsx'
-    input_file = r'C:\Temp\einav\11-10-23\db_.xlsx'
+    input_file = r'C:\Temp\einav\db\db.xlsx'
+    # input_file = r'C:\Temp\einav\11-10-23\db_.xlsx'
     print(f'Loaded input: {input_file}')
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
 
+    workbook = openpyxl.load_workbook(input_file)   
+    cost_centers = get_all_cost_centers(workbook)
+
     df = read_excel(input_file)
-    cost_centers = df[Constants.cost_center_text].tolist()
-    cost_centers = set(cost_centers)
+  
     tmp_output_file = str(f'{excel_dir}\\tmp_out.xlsx')
     pivots = {}
 
@@ -124,13 +138,13 @@ def main_function():
             continue
 
         curr_sheet = workbook[sheet]
-        set_hard_coded_text(curr_sheet, sheet)
+        set_hard_coded_text(curr_sheet, sheet, cost_centers)
 
         last_cell_occupied = ExcelUtils.get_last_row_column(curr_sheet)
         last_row = last_cell_occupied[0] # row
         last_col = last_cell_occupied[1] # col
 
-        ExcelUtils.set_totals_for_budget(totals_sheet, workbook[sheet], last_row, last_col)
+        ExcelUtils.set_totals_for_budget(totals_sheet, workbook[sheet], last_row, last_col, cost_centers)
 
         # Set text
         ExcelUtils.calc_and_set_total_for_product(curr_sheet, 5, last_row, 3, last_col)

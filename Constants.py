@@ -30,16 +30,18 @@ monthsNameToInt = {
     'Apr': 12
 }
 
-cost_centers = {
-    511200: 'R&D',
-    511201: 'QA',
-    511202: 'Finance',
-    511203: 'Admin',
-    511204: 'HR',
-    511205: 'BOD',
-    511206: 'General Mkt',
-    510686: 'R&D General',
-}
+# cost_centers = {
+#     511200: 'R&D',
+#     511201: 'QA',
+#     511202: 'Finance',
+#     511203: 'Admin',
+#     511204: 'HR',
+#     511205: 'BOD',
+#     511206: 'General Mkt',
+#     510686: 'R&D General',
+#     510801: 'System',
+#     510802: 'Cyber Security'
+# }
 alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 grand_total_text = 'Grand Total'
