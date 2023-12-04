@@ -6,3 +6,4 @@ output/PnL_Calculator.exe
 __pycache__/*
 *.pyc
 dist/main.exe
+log.log
