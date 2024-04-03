@@ -9,5 +9,8 @@
 /.idea/
 .hypothesis/
 .env
-*/build
+/build
+/dist
 *.xlsx
+*.log
+*.spec
