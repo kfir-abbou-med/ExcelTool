@@ -1,5 +1,5 @@
-import os.path
 import sys
+import os.path
 import pandas as pd
 import openpyxl.utils.cell
 import openpyxl
@@ -80,8 +80,8 @@ def set_temp_sheet_style(curr_sheet, last_row, last_col):
     ExcelUtils.set_months_title(sheet=curr_sheet, last_col=last_col)
     ExcelUtils.calc_months_difference(sheet=curr_sheet, min_row=5, max_row=last_row + 2, min_col=3,
                                       max_col=last_col)
-    ExcelUtils.set_all_sheet_numbers_to_number_format(
-        curr_sheet, min_row=4, min_col=3)
+    # ExcelUtils.set_all_sheet_numbers_to_number_format(
+    #     curr_sheet, min_row=4, min_col=3)
 
 
 def set_totals_sheet_style(totals_sheet):
@@ -132,8 +132,9 @@ def main_function():
         init_all_sheets_total_per_month()
 
         # input_file = sys.argv[1]  # files[0]
-        input_file = r'C:\Temp\einav\db\db.xlsx'
+        # input_file = r'C:\Temp\einav\db\db.xlsx'
         # input_file = r'C:\Temp\einav\11-10-23\db_.xlsx'
+        input_file = r'C:\Temp\einav\04-10-24\db_.xlsx'
         logging.info(f'[main_function] input_file: {input_file}')
         print(f'Loaded input: {input_file}')
         if not os.path.exists(excel_dir):
@@ -181,8 +182,10 @@ def main_function():
             set_hard_coded_text(curr_sheet, sheet, cost_centers)
 
             last_cell_occupied = ExcelUtils.get_last_row_column(curr_sheet)
-            last_row = last_cell_occupied[0]  # row
-            last_col = last_cell_occupied[1]  # col
+            # last_row = last_cell_occupied[0]  # row
+            # last_col = last_cell_occupied[1]  # col
+
+            last_row, last_col = last_cell_occupied
 
             ExcelUtils.set_totals_for_budget(
                 totals_sheet, workbook[sheet], last_row, last_col, cost_centers)
@@ -221,6 +224,7 @@ def main_function():
         # saving the destination Excel file
         AutoFitTool.auto_fit_cols(results_sheet)
         AutoFitTool.auto_fit_cols(totals_sheet)
+        
         workbook.save(str(Constants.output_file_name))
         dir_path = os.path.dirname(os.path.realpath(__file__))
         print(
@@ -229,6 +233,10 @@ def main_function():
             f'Output created in: {dir_path}\\{str(Constants.output_file_name)}')
     except Exception as e:
         logging.error(f'[main_function] Error: {e}')
+        exc_type, _, exc_tb = sys.exc_info()
+        fname = os.path.split(
+        exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
 
 
 main_function()

@@ -1,5 +1,5 @@
 import Constants
-from openpyxl.styles import Border, Side, Alignment, Font
+from openpyxl.styles import NamedStyle, Font, Alignment, Border, Side
 import re
 import datetime
 import logging
@@ -155,6 +155,7 @@ def set_all_sheet_numbers_to_number_format(sheet, min_row=1, min_col=1):
             if cell.value is not None:
                 is_numeric = is_float(str(cell.value))
                 if is_numeric is True:
+                    # set_cell_format_to_currency(cell)
                     set_cell_number_format(cell)
 
 
@@ -162,6 +163,12 @@ def set_cell_number_format(cell):
     # logging.info(f'[ExcelUtils::set_cell_number_format]')
     num_format = '#,##0.00;"-"#,##0.00'
     cell.number_format = num_format
+
+def set_cell_format_to_currency(cell):
+    # logging.info(f'[ExcelUtils::set_cell_number_format]')
+    currency_style = NamedStyle(name='currency', number_format='$#,##0.00')
+    # Apply the style to the cell
+    cell.style = currency_style
 
 
 def set_fill_on_area(sheet, min_row, max_row, min_col, max_col, color_key):
@@ -192,7 +199,7 @@ def set_const_text_sum_sheet(sheet):
 def set_all_totals(sheet, all_sheets_total_per_month):
     logging.info(f'[ExcelUtils::set_all_totals]')
     for key in all_sheets_total_per_month.keys():
-        letter = num_hash(key+1)
+        letter = num_hash   (key+1)
         actual = sheet[f'{letter}5']
         budget = sheet[f'{letter}6']
         diff = sheet[f'{letter}8']
@@ -236,7 +243,7 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col, all_cost_c
         row_for_results = active_sheet_max_row+1
         col_letter = num_hash(col-1)
 
-        for i in range(min_col, max_col, 1):
+        for i in range(min_col, max_col + min_col, 1):
             col_letter = num_hash(i-1)
             actual_cell = active_sheet[f'{col_letter}{row_for_results}']
             budget_cell = active_sheet[f'{col_letter}{str(int(row_for_results+1))}']
@@ -252,7 +259,8 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col, all_cost_c
                     budget_cell.value = 0
                     diff_cell.value = 0
             else:
-                actual_cell.value = float(total_per_month[1])
+                # actual_cell.value = float(total_per_month[1])
+                actual_cell.value = total_per_month[1]
                 budget_cell.value = 0
                 diff_cell.value = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
                 set_cell_border(active_sheet, budget_cell,
@@ -316,7 +324,7 @@ def set_months_titles(sheet, row, min_col, max_col):
     for i in range(min_col, max_col):
         letter = num_hash(i)
         month = Constants.months[i-1][:3]
-        year = str(get_current_year(i))[2:]
+        year = int(str(get_current_year(i))[2:]) - 1
         sheet[f'{letter}{row}'] = f'{month}-{year}'
         set_cell_fill(sheet, sheet[f'{letter}{row}'], 'title')
     letter = num_hash(max_col)
@@ -347,6 +355,7 @@ def calc_and_set_total_for_product(sheet, min_row, max_row, min_col, max_col):
         col = num_hash(key)
         row = max_row + 1
         sheet[f'{col}{row}'] = total_product[key]
+        set_cell_number_format(sheet[f'{col}{row}'])
 
 
 def write_results(sheet, row, col, total):

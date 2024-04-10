@@ -13,4 +13,4 @@ def auto_fit_cols(sheet):
             if val is not None:
                 widths_list.append(len(val))
         col_letter = ExcelUtils.num_hash(j)
-        sheet.column_dimensions[str(col_letter)].width = max(widths_list)
+        sheet.column_dimensions[str(col_letter)].width = max(widths_list) + 3
