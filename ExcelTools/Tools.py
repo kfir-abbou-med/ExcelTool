@@ -1,8 +1,5 @@
-import win32com.client as win32
-import pandas as pd
-import numpy as np
+import win32com as win32
 from pathlib import Path
-import re
 import sys
 win32c = win32.constants
 
@@ -60,7 +57,7 @@ def run_excel(f_path: Path, f_name: str, sheet_name: str):
     # try except for file / path
     try:
         wb = excel.Workbooks.Open(filename)
-    except com_error as e:
+    except Exception as e:
         if e.excepinfo[5] == -2146827284:
             print(f'Failed to open spreadsheet.  Invalid filename or location: {filename}')
         else:

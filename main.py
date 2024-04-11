@@ -1,13 +1,11 @@
 import sys
 import os.path
 import pandas as pd
-import openpyxl.utils.cell
 import openpyxl
 import AutoFitTool
 import Constants
 import ExcelUtils
 import logging
-import logging.config
 
 all_sheets_total_per_month = {}
 
@@ -243,4 +241,4 @@ main_function()
 
 
 # Create exe by copying this lines
-# pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico" --hidden-import "pandas"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
+# pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico" --distpath "C:\temp\excelToolForEinav\output"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
