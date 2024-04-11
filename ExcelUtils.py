@@ -1,3 +1,5 @@
+import os
+import sys
 import Constants
 from openpyxl.styles import NamedStyle, Font, Alignment, Border, Side
 import re
@@ -48,20 +50,26 @@ def copy_data_to_new_sheet(sheet, new_sheet):
     mc = sheet.max_column
 
     col_offset = new_sheet.max_column
+    try:
+        for i in range(1, mr + 1):
+            for j in range(1, mc + 1):
+                # reading cell value from source excel file
+                c = sheet.cell(row=i, column=j)
+                if c.has_style:
+                    new_sheet.cell(row=i, column=j + col_offset +
+                                1)._style = c._style
 
-    for i in range(1, mr + 1):
-        for j in range(1, mc + 1):
-            # reading cell value from source excel file
-            c = sheet.cell(row=i, column=j)
-            if c.has_style:
-                new_sheet.cell(row=i, column=j + col_offset +
-                               1)._style = c._style
-
-            # writing the read value to destination excel file
-            new_sheet.cell(row=i, column=j + col_offset + 1).value = c.value
-            if is_float(str(c.value)):
-                set_cell_number_format(c)
-
+                # writing the read value to destination excel file
+                new_sheet.cell(row=i, column=j + col_offset + 1).value = c.value
+                if is_float(str(c.value)):
+                    if int(c.value) > 12:
+                        set_cell_number_format(c)
+    except Exception as e:
+        logging.error(f'[main_function] Error: {e}')
+        exc_type, _, exc_tb = sys.exc_info()
+        fname = os.path.split(
+        exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
 
 def remove_borders(sheet):
     logging.info('[ExcelUtils::remove_borders]')

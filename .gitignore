@@ -1,16 +1,16 @@
 
-*.pyc
-*.pyz
 .vscode/settings.json
 .vscode/launch.json
-/.directory
-*.npy
-*.iml
-/.idea/
 .hypothesis/
-.env
 /build
 /dist
+/.directory
+/.idea/
+*.npy
+*.iml
+.env
+*.pyc
+*.pyz
 *.xlsx
 *.log
 *.spec
