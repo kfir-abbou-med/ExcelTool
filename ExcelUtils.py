@@ -59,6 +59,8 @@ def copy_data_to_new_sheet(sheet, new_sheet):
 
             # writing the read value to destination excel file
             new_sheet.cell(row=i, column=j + col_offset + 1).value = c.value
+            if is_float(str(c.value)):
+                set_cell_number_format(c)
 
 
 def remove_borders(sheet):
