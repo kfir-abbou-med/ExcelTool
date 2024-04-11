@@ -126,13 +126,13 @@ def main_function():
 
         logging.info('[main_function] Starting app...')
         excel_dir = r'C:\Temp\ExcelPivotInput'
-        # files = glob.glob(f'{pathlib.Path().absolute()}\\*.xlsx')
+        
         init_all_sheets_total_per_month()
 
-        # input_file = sys.argv[1]  # files[0]
+        input_file = sys.argv[1]  # files[0]
         # input_file = r'C:\Temp\einav\db\db.xlsx'
         # input_file = r'C:\Temp\einav\11-10-23\db_.xlsx'
-        input_file = r'C:\Temp\einav\04-10-24\db_.xlsx'
+        # input_file = r'C:\Temp\einav\04-10-24\db_.xlsx'
         logging.info(f'[main_function] input_file: {input_file}')
         print(f'Loaded input: {input_file}')
         if not os.path.exists(excel_dir):

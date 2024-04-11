@@ -164,6 +164,7 @@ def set_cell_number_format(cell):
     num_format = '#,##0.00;"-"#,##0.00'
     cell.number_format = num_format
 
+
 def set_cell_format_to_currency(cell):
     # logging.info(f'[ExcelUtils::set_cell_number_format]')
     currency_style = NamedStyle(name='currency', number_format='$#,##0.00')
@@ -263,12 +264,14 @@ def set_totals_for_budget(active_sheet, data_sheet, max_row, max_col, all_cost_c
                 actual_cell.value = total_per_month[1]
                 budget_cell.value = 0
                 diff_cell.value = f'={col_letter}{str(int(row_for_results+1))}-{col_letter}{str(int(row_for_results))}'
-                set_cell_border(active_sheet, budget_cell,
-                                False, True, False, False)
+                # set_cell_border(active_sheet, budget_cell,
+                #                 False, True, False, False)
                 set_cell_number_format(actual_cell)
                 set_cell_number_format(budget_cell)
                 set_cell_number_format(diff_cell)
                 break
+            set_cell_border(active_sheet, budget_cell,
+                                False, True, False, False)
 
     # TODO: replace with loop
     actual_total = active_sheet[f'{num_hash(max_col+2)}{str(int(row_for_results))}']
