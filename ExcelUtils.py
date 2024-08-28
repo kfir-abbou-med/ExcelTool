@@ -61,9 +61,9 @@ def copy_data_to_new_sheet(sheet, new_sheet):
 
                 # writing the read value to destination excel file
                 new_sheet.cell(row=i, column=j + col_offset + 1).value = c.value
-                if is_float(str(c.value)):
-                    if int(c.value) > 12:
-                        set_cell_number_format(c)
+                # if is_float(str(c.value)):
+                #     if int(c.value) > 12:
+                #         set_cell_number_format(c)
     except Exception as e:
         logging.error(f'[main_function] Error: {e}')
         exc_type, _, exc_tb = sys.exc_info()
@@ -157,7 +157,7 @@ def set_bold_text(sheet, min_row=1, max_row=None, min_col=1, max_col=None, is_bo
 
 
 def set_all_sheet_numbers_to_number_format(sheet, min_row=1, min_col=1):
-    logging.info(f'[ExcelUtils::set_all_sheet_numbers_to_number_format]')
+    logging.info(f'[ExcelUtils::set_all_sheet_numbers_to_number_format] {sheet.title}')
 
     for r in range(min_row, sheet.max_row):
         for c in range(min_col, sheet.max_column):
