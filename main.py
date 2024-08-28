@@ -137,10 +137,10 @@ def main_function():
         
         init_all_sheets_total_per_month()
 
-        # input_file = sys.argv[1]  # files[0] // uncomment kfir
+        input_file = sys.argv[1]  # files[0] // uncomment kfir
         # input_file = r'C:\Temp\einav\db\db.xlsx'
         # input_file = r'C:\Temp\einav\11-10-23\db_.xlsx'
-        input_file = r'C:\Temp\einav\28-08-24\db.xlsx' # comment kfir
+        # input_file = r'C:\Temp\einav\28-08-24\db.xlsx' # comment kfir
         logging.info(f'[main_function] input_file: {input_file}')
         print(f'Loaded input: {input_file}')
         if not os.path.exists(excel_dir):
@@ -248,5 +248,5 @@ def main_function():
 main_function()
 
 
-# Create exe by copying this lines
+# Create exe by copying this lines - don't forget to use virtual env
 # pyinstaller --noconfirm --onefile --console --icon "C:/Temp/ExcelPivotInput - Copy/App/images.ico" --distpath "C:\temp\excelToolForEinav\output"  "C:/Users/abbouk2/PycharmProjects/ExcelTool/main.py"
