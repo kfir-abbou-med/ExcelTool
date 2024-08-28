@@ -103,18 +103,26 @@ def create_totals_sheet_and_init_consts(workbook, totals):
 
 
 def get_all_cost_centers(workbook):
-    logging.info('[main::get_all_cost_centers]')
-    data = {}
-    sheet_name = workbook.sheetnames[0]
-    sheet = workbook[sheet_name]
-    for row in range(2, sheet.max_row + 1):
-        key = int(sheet['B' + str(row)].value)
-        value = sheet['C' + str(row)].value
-
-        data[key] = value
-    sorted_dict = {k: data[k] for k in sorted(data)}
-    logging.info(f'[main::get_all_cost_centers] Sorted_dict: {sorted_dict}')
-    return sorted_dict
+    try:
+        logging.info('[main::get_all_cost_centers]')
+        data = {}
+        sheet_name = workbook.sheetnames[0]
+        sheet = workbook[sheet_name]
+        for row in range(2, sheet.max_row + 1):
+            centerCode = sheet['B' + str(row)].value
+            if(centerCode != ''):
+                key = int(centerCode)
+                value = sheet['C' + str(row)].value
+                data[key] = value
+        sorted_dict = {k: data[k] for k in sorted(data)}
+        logging.info(f'[main::get_all_cost_centers] Sorted_dict: {sorted_dict}')
+        return sorted_dict
+    except Exception as e:
+        logging.error(f'[main_function] Error: {e}')
+        exc_type, _, exc_tb = sys.exc_info()
+        fname = os.path.split(
+        exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
 
  # Create and configure logger
 logging.basicConfig(filename="log.log", filemode='w', level=logging.DEBUG,
@@ -129,10 +137,10 @@ def main_function():
         
         init_all_sheets_total_per_month()
 
-        input_file = sys.argv[1]  # files[0]
+        # input_file = sys.argv[1]  # files[0] // uncomment kfir
         # input_file = r'C:\Temp\einav\db\db.xlsx'
         # input_file = r'C:\Temp\einav\11-10-23\db_.xlsx'
-        # input_file = r'C:\Temp\einav\04-10-24\db_.xlsx'
+        input_file = r'C:\Temp\einav\28-08-24\db.xlsx' # comment kfir
         logging.info(f'[main_function] input_file: {input_file}')
         print(f'Loaded input: {input_file}')
         if not os.path.exists(excel_dir):
